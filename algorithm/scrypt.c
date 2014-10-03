@@ -188,7 +188,7 @@ SHA256_InitState(uint32_t * state)
 	state[7] = 0x5BE0CD19;
 }
 
-static const uint32_t passwdpad[12] = {0x00000080, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x80020000};
+static const uint32_t passwdpad[11] = {0x00000080, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xa0020000};
 static const uint32_t outerpad[8] = {0x80000000, 0, 0, 0, 0, 0, 0, 0x00000300};
 
 /**
@@ -197,7 +197,7 @@ static const uint32_t outerpad[8] = {0x80000000, 0, 0, 0, 0, 0, 0, 0x00000300};
  * write the output to buf.  The value dkLen must be at most 32 * (2^32 - 1).
  */
 static inline void
-PBKDF2_SHA256_80_128(const uint32_t * passwd, uint32_t * buf)
+PBKDF2_SHA256_84_128(const uint32_t * passwd, uint32_t * buf)
 {
 	SHA256_CTX PShictx, PShoctx;
 	uint32_t tstate[8];
@@ -205,13 +205,13 @@ PBKDF2_SHA256_80_128(const uint32_t * passwd, uint32_t * buf)
 	uint32_t i;
 	uint32_t pad[16];
 
-	static const uint32_t innerpad[11] = {0x00000080, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xa0040000};
+	static const uint32_t innerpad[10] = {0x00000080, 0, 0, 0, 0, 0, 0, 0, 0, 0xc0040000};
 
 	/* If Klen > 64, the key is really SHA256(K). */
 	SHA256_InitState(tstate);
 	SHA256_Transform(tstate, passwd, 1);
-	memcpy(pad, passwd+16, 16);
-	memcpy(pad+4, passwdpad, 48);
+	memcpy(pad, passwd+16, 20);
+	memcpy(pad+5, passwdpad, 44);
 	SHA256_Transform(tstate, pad, 1);
 	memcpy(ihash, tstate, 32);
 
@@ -251,7 +251,7 @@ PBKDF2_SHA256_80_128(const uint32_t * passwd, uint32_t * buf)
 
 
 static inline void
-PBKDF2_SHA256_80_128_32(const uint32_t * passwd, const uint32_t * salt, uint32_t *ostate)
+PBKDF2_SHA256_84_128_32(const uint32_t * passwd, const uint32_t * salt, uint32_t *ostate)
 {
 	uint32_t tstate[8];
 	uint32_t ihash[8];
@@ -265,8 +265,8 @@ PBKDF2_SHA256_80_128_32(const uint32_t * passwd, const uint32_t * salt, uint32_t
 	/* If Klen > 64, the key is really SHA256(K). */
 	SHA256_InitState(tstate);
 	SHA256_Transform(tstate, passwd, 1);
-	memcpy(pad, passwd+16, 16);
-	memcpy(pad+4, passwdpad, 48);
+	memcpy(pad, passwd+16, 20);
+	memcpy(pad+5, passwdpad, 44);
 	SHA256_Transform(tstate, pad, 1);
 	memcpy(ihash, tstate, 32);
 
@@ -370,7 +370,7 @@ static void scrypt_n_1_1_256_sp(const uint32_t* input, char* scratchpad, uint32_
 	p1 = (uint64_t *)X;
 	V = (uint32_t *)(((uintptr_t)(scratchpad) + 63) & ~ (uintptr_t)(63));
 
-	PBKDF2_SHA256_80_128(input, X);
+	PBKDF2_SHA256_84_128(input, X);
 
 	for (i = 0; i < n; i += 2) {
 		memcpy(&V[i * 32], X, 128);
@@ -401,18 +401,18 @@ static void scrypt_n_1_1_256_sp(const uint32_t* input, char* scratchpad, uint32_
 		salsa20_8(&X[16], &X[0]);
 	}
 
-	PBKDF2_SHA256_80_128_32(input, X, ostate);
+	PBKDF2_SHA256_84_128_32(input, X, ostate);
 }
 
 void scrypt_regenhash(struct work *work)
 {
-	uint32_t data[20];
+	uint32_t data[21];
 	char *scratchbuf;
-	uint32_t *nonce = (uint32_t *)(work->data + 76);
+	uint32_t *nonce = (uint32_t *)(work->data + 80);
 	uint32_t *ohash = (uint32_t *)(work->hash);
 
-	be32enc_vect(data, (const uint32_t *)work->data, 19);
-	data[19] = htobe32(*nonce);
+	be32enc_vect(data, (const uint32_t *)work->data, 20);
+	data[20] = htobe32(*nonce);
 
 	scratchbuf = (char *)alloca(work->pool->algorithm.n * 128 + 512);
 	scrypt_n_1_1_256_sp(data, scratchbuf, ohash, work->pool->algorithm.n);

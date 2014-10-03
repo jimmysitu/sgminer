@@ -1230,6 +1230,7 @@ struct stratum_work {
   char *prev_hash;
   unsigned char **merkle_bin;
   char *bbversion;
+  char *height;
   char *nbit;
   char *ntime;
   bool clean;

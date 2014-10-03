@@ -1504,7 +1504,7 @@ static char *blank_merkel = "000000000000000000000000000000000000000000000000000
 
 static bool parse_notify(struct pool *pool, json_t *val)
 {
-  char *job_id, *prev_hash, *coinbase1, *coinbase2, *bbversion, *nbit,
+  char *job_id, *prev_hash, *coinbase1, *coinbase2, *bbversion, *height, *nbit,
        *ntime, *header;
   size_t cb1_len, cb2_len, alloc_len;
   unsigned char *cb1, *cb2;
@@ -1526,8 +1526,9 @@ static bool parse_notify(struct pool *pool, json_t *val)
   nbit = json_array_string(val, 6);
   ntime = json_array_string(val, 7);
   clean = json_is_true(json_array_get(val, 8));
+  height = json_array_string(val, 9);
 
-  if (!job_id || !prev_hash || !coinbase1 || !coinbase2 || !bbversion || !nbit || !ntime) {
+  if (!job_id || !prev_hash || !coinbase1 || !coinbase2 || !bbversion || !height || !nbit || !ntime) {
     /* Annoying but we must not leak memory */
     if (job_id)
       free(job_id);
@@ -1539,6 +1540,8 @@ static bool parse_notify(struct pool *pool, json_t *val)
       free(coinbase2);
     if (bbversion)
       free(bbversion);
+    if (height)
+      free(height);
     if (nbit)
       free(nbit);
     if (ntime)
@@ -1550,6 +1553,7 @@ static bool parse_notify(struct pool *pool, json_t *val)
   free(pool->swork.job_id);
   free(pool->swork.prev_hash);
   free(pool->swork.bbversion);
+  free(pool->swork.height);
   free(pool->swork.nbit);
   free(pool->swork.ntime);
   pool->swork.job_id = job_id;
@@ -1557,6 +1561,7 @@ static bool parse_notify(struct pool *pool, json_t *val)
   cb1_len = strlen(coinbase1) / 2;
   cb2_len = strlen(coinbase2) / 2;
   pool->swork.bbversion = bbversion;
+  pool->swork.height = height;
   pool->swork.nbit = nbit;
   pool->swork.ntime = ntime;
   pool->swork.clean = clean;
@@ -1585,6 +1590,7 @@ static bool parse_notify(struct pool *pool, json_t *val)
             strlen(pool->swork.prev_hash);
   pool->swork.header_len = pool->merkle_offset +
   /* merkle_hash */  32 +
+         strlen(pool->swork.height) +
          strlen(pool->swork.ntime) +
          strlen(pool->swork.nbit) +
   /* nonce */    8 +
@@ -1594,10 +1600,11 @@ static bool parse_notify(struct pool *pool, json_t *val)
   align_len(&pool->swork.header_len);
   header = (char *)alloca(pool->swork.header_len);
   snprintf(header, pool->swork.header_len,
-    "%s%s%s%s%s%s%s",
+    "%s%s%s%s%s%s%s%s",
     pool->swork.bbversion,
     pool->swork.prev_hash,
     blank_merkel,
+    pool->swork.height,
     pool->swork.ntime,
     pool->swork.nbit,
     "00000000", /* nonce */

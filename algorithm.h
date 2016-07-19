@@ -38,6 +38,7 @@ typedef enum {
   ALGO_BLAKE,
   ALGO_DECRED,
   ALGO_VANILLA,
+  ALGO_SIA,
   ALGO_LBRY
 } algorithm_type_t;
 

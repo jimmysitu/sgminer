@@ -1020,11 +1020,26 @@ static cl_int queue_sia_kernel(struct __clState *clState, struct _dev_blk_ctx *b
 
   le_target = *(cl_ulong *)(blk->work->device_target + 24);
   flip80(clState->cldata, blk->work->data);
+  //TODO: Jimmy, print clState->cldata here, and get the real work data
+  applog(LOG_DEBUG, "[HW_ACC] Writing cldata to device, data is:");
+  for(int i = 0; i < 80; i = i+8){
+    applog(LOG_DEBUG, "[HW_ACC] 0x%02X%02X%02X%02X%02X%02X%02X%02X",
+           clState->cldata[i+7],    clState->cldata[i+6],
+           clState->cldata[i+5],    clState->cldata[i+4],
+           clState->cldata[i+3],    clState->cldata[i+2],
+           clState->cldata[i+1],    clState->cldata[i]
+           );
+  }
+  applog(LOG_DEBUG, "[HW_ACC] Target: 0x%016llX", le_target);
+
   status = clEnqueueWriteBuffer(clState->commandQueue, clState->CLbuffer0, true, 0, 80, clState->cldata, 0, NULL, NULL);
 
   CL_SET_ARG(clState->CLbuffer0);
   CL_SET_ARG(clState->outputBuffer);
   CL_SET_ARG(le_target);
+
+  //TODO: Jimmy, set debug buffer to get internal status
+  CL_SET_ARG(clState->dbgBuffer);
 
   return status;
 }

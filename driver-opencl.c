@@ -1448,6 +1448,17 @@ static int64_t opencl_scanhash(struct thr_info *thr, struct work *work,
     return -1;
   }
 
+  //TODO: Jimmy, read debug buffer to get internal status
+  cl_ulong dbgBuffer[13][16];
+  if (thrdata->res[found]) {
+    status = clEnqueueReadBuffer(clState->commandQueue, clState->dbgBuffer, CL_FALSE, 0,
+                                 13*16*(sizeof(cl_ulong)), dbgBuffer, 0, NULL, NULL);
+    if (unlikely(status != CL_SUCCESS)) {
+      applog(LOG_ERR, "Error: clEnqueueReadBuffer failed error %d. (clEnqueueReadBuffer)", status);
+      return -1;
+    }
+  }
+
   /* The amount of work scanned can fluctuate when intensity changes
    * and since we do this one cycle behind, we increment the work more
    * than enough to prevent repeating work */
@@ -1467,6 +1478,23 @@ static int64_t opencl_scanhash(struct thr_info *thr, struct work *work,
     }
     applog(LOG_DEBUG, "GPU %d found something?", gpu->device_id);
     postcalc_hash_async(thr, work, thrdata->res);
+
+    //TODO, Jimmy, print thrdata->res here to get the golden Result
+    applog(LOG_DEBUG, "[HW_ACC] Found %d valid nonces:", thrdata->res[found]);
+    for(int i = 0; i < thrdata->res[found]; i++){
+      applog(LOG_DEBUG, "[HW_ACC] Valid nonce: 0x%08X", thrdata->res[i]);
+    }
+    //TODO, Jimmy, print dbgBuffer here to get internal status
+    applog(LOG_DEBUG, "[HW_ACC] Internal status:");
+    for(int i = 0; i < 12; i++){
+      for(int j = 0; j < 16; j++){
+        applog(LOG_DEBUG, "[HW_ACC] rv[%02d][%02d] = 0x%016llX", i, j, dbgBuffer[i][j]);
+      }
+    }
+    for(int i = 0; i < 16; i++){
+      applog(LOG_DEBUG, "[HW_ACC] m[%d] = 0x%016llX", i, dbgBuffer[12][i]);
+    }
+
 //	postcalc_hash(thr);
 //	submit_tested_work(thr, work);
 //	submit_work_async(work);
@@ -1491,6 +1519,7 @@ static void opencl_thread_shutdown(struct thr_info *thr)
     clFinish(clState->commandQueue);
     clReleaseMemObject(clState->outputBuffer);
     clReleaseMemObject(clState->CLbuffer0);
+    clReleaseMemObject(clState->dbgBuffer);
 	if (clState->buffer1)
 	clReleaseMemObject(clState->buffer1);
 	if (clState->buffer2)

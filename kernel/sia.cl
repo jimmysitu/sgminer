@@ -1,4 +1,4 @@
-
+/* vim: ft=c ts=2 */
 #if __ENDIAN_LITTLE__
   #define SPH_LITTLE_ENDIAN 1
 #else
@@ -56,7 +56,7 @@ __constant static const uchar blake2b_sigma[12][16] = {
 	{ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15 } ,
 	{ 14, 10, 4,  8,  9,  15, 13, 6,  1,  12, 0,  2,  11, 7,  5,  3  } };
 
-__kernel void search(__global unsigned char* block, volatile __global uint* output, const ulong target) {
+__kernel void search(__global unsigned char* block, volatile __global uint* output, const ulong target, volatile __global ulong dbgbuf[13][16]) {
 	sph_u32 gid = get_global_id(0);
 
 	ulong m[16];
@@ -77,6 +77,14 @@ __kernel void search(__global unsigned char* block, volatile __global uint* outp
 	                0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1,
 	                0x510e527fade68281, 0x9b05688c2b3e6c1f, 0xe07c265404be4294, 0x5be0cd19137e2179 };
 
+  ulong rv[12][16];
+  int i, j;
+
+  for(i = 0; i < 16; i++){
+    dbgbuf[12][i] = m[i];
+    printf("[OCL_KNL]: m[%d] = 0x%016lx\n", i, m[i]);
+  }
+
 #define G(r,i,a,b,c,d) \
 	a = a + b + m[ blake2b_sigma[r][2*i] ]; \
 	((uint2*)&d)[0] = ((uint2*)&d)[0].yx ^ ((uint2*)&a)[0].yx; \
@@ -85,17 +93,30 @@ __kernel void search(__global unsigned char* block, volatile __global uint* outp
 	a = a + b + m[ blake2b_sigma[r][2*i+1] ]; \
 	((uint2*)&d)[0] = ror64( ((uint2*)&d)[0] ^ ((uint2*)&a)[0], 16U); \
 	c = c + d; \
-    ((uint2*)&b)[0] = ror64_2( ((uint2*)&b)[0] ^ ((uint2*)&c)[0], 63U);
+  ((uint2*)&b)[0] = ror64_2( ((uint2*)&b)[0] ^ ((uint2*)&c)[0], 63U); 
 
 #define ROUND(r)                    \
 	G(r,0,v[ 0],v[ 4],v[ 8],v[12]); \
+  printf("[OCL_KNL]: r%d, i%d, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,0,v[ 0],v[ 4],v[ 8],v[12]); \
 	G(r,1,v[ 1],v[ 5],v[ 9],v[13]); \
+  printf("[OCL_KNL]: r%d, i%d, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,1,v[ 1],v[ 5],v[ 9],v[13]); \
 	G(r,2,v[ 2],v[ 6],v[10],v[14]); \
+  printf("[OCL_KNL]: r%d, i%d, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,2,v[ 2],v[ 6],v[10],v[14]); \
 	G(r,3,v[ 3],v[ 7],v[11],v[15]); \
+  printf("[OCL_KNL]: r%d, i%d, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,3,v[ 3],v[ 7],v[11],v[15]); \
 	G(r,4,v[ 0],v[ 5],v[10],v[15]); \
+  printf("[OCL_KNL]: r%d, i%d, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,4,v[ 0],v[ 5],v[10],v[15]); \
 	G(r,5,v[ 1],v[ 6],v[11],v[12]); \
+  printf("[OCL_KNL]: r%d, i%d, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,5,v[ 1],v[ 6],v[11],v[12]); \
 	G(r,6,v[ 2],v[ 7],v[ 8],v[13]); \
-	G(r,7,v[ 3],v[ 4],v[ 9],v[14]);
+  printf("[OCL_KNL]: r%d, i%d, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,6,v[ 2],v[ 7],v[ 8],v[13]); \
+	G(r,7,v[ 3],v[ 4],v[ 9],v[14]); \
+  printf("[OCL_KNL]: r%d, i%d, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,7,v[ 3],v[ 4],v[ 9],v[14]); \
+//  for(i=0; i<16; i++){ \
+//    rv[r][i] = v[i]; \
+//    printf("[OCL_KNL]: rv[%d][%d] = 0x%016lx\n", r, i, rv[r][i]); \
+//  }
+
 	ROUND( 0 );
 	ROUND( 1 );
 	ROUND( 2 );
@@ -112,7 +133,24 @@ __kernel void search(__global unsigned char* block, volatile __global uint* outp
 #undef G
 #undef ROUND
 
+//  for(i = 0; i < 12; i++){
+//    for(j = 0; j < 16; j++){
+//      dbgbuf[i][j] = rv[i][j];
+//      printf("[OCL_KNL]: rv[%d][%d] = 0x%016lx\n", i, j, rv[i][j]);
+//    }
+//  }
+
 	bool result = (SWAP8(0x6a09e667f2bdc928 ^ v[0] ^ v[8]) <= target);
-	if (result)
+	if (result){
 		output[output[0xFF]++] = SWAP4(gid);
+    for(i = 0; i < 12; i++){
+      for(j = 0; j < 16; j++){
+        dbgbuf[i][j] = rv[i][j];
+      }
+    }
+    for(i = 0; i < 16; i++){
+      dbgbuf[12][i] = m[i];
+      printf("[OCL_KNL]: m[%d] = 0x%016lx\n", i, m[i]);
+    }
+  }
 }

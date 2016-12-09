@@ -80,38 +80,33 @@ __kernel void search(__global unsigned char* block, volatile __global uint* outp
   ulong rv[12][16];
   int i, j;
 
-  for(i = 0; i < 16; i++){
+  for(i = 15; i >= 0; i--){
     dbgbuf[12][i] = m[i];
     printf("[OCL_KNL]: m[%d] = 0x%016lx\n", i, m[i]);
   }
 
 #define G(r,i,a,b,c,d) \
+  printf("[OCL_KNL]: r%d, i%d, p0, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,i,a,b,c,d); \
 	a = a + b + m[ blake2b_sigma[r][2*i] ]; \
 	((uint2*)&d)[0] = ((uint2*)&d)[0].yx ^ ((uint2*)&a)[0].yx; \
 	c = c + d; \
 	((uint2*)&b)[0] = ror64( ((uint2*)&b)[0] ^ ((uint2*)&c)[0], 24U); \
+  printf("[OCL_KNL]: r%d, i%d, p1, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,i,a,b,c,d); \
 	a = a + b + m[ blake2b_sigma[r][2*i+1] ]; \
 	((uint2*)&d)[0] = ror64( ((uint2*)&d)[0] ^ ((uint2*)&a)[0], 16U); \
 	c = c + d; \
-  ((uint2*)&b)[0] = ror64_2( ((uint2*)&b)[0] ^ ((uint2*)&c)[0], 63U); 
+  ((uint2*)&b)[0] = ror64_2( ((uint2*)&b)[0] ^ ((uint2*)&c)[0], 63U); \
+  printf("[OCL_KNL]: r%d, i%d, p2, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,i,a,b,c,d); \
 
 #define ROUND(r)                    \
 	G(r,0,v[ 0],v[ 4],v[ 8],v[12]); \
-  printf("[OCL_KNL]: r%d, i%d, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,0,v[ 0],v[ 4],v[ 8],v[12]); \
 	G(r,1,v[ 1],v[ 5],v[ 9],v[13]); \
-  printf("[OCL_KNL]: r%d, i%d, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,1,v[ 1],v[ 5],v[ 9],v[13]); \
 	G(r,2,v[ 2],v[ 6],v[10],v[14]); \
-  printf("[OCL_KNL]: r%d, i%d, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,2,v[ 2],v[ 6],v[10],v[14]); \
 	G(r,3,v[ 3],v[ 7],v[11],v[15]); \
-  printf("[OCL_KNL]: r%d, i%d, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,3,v[ 3],v[ 7],v[11],v[15]); \
 	G(r,4,v[ 0],v[ 5],v[10],v[15]); \
-  printf("[OCL_KNL]: r%d, i%d, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,4,v[ 0],v[ 5],v[10],v[15]); \
 	G(r,5,v[ 1],v[ 6],v[11],v[12]); \
-  printf("[OCL_KNL]: r%d, i%d, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,5,v[ 1],v[ 6],v[11],v[12]); \
 	G(r,6,v[ 2],v[ 7],v[ 8],v[13]); \
-  printf("[OCL_KNL]: r%d, i%d, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,6,v[ 2],v[ 7],v[ 8],v[13]); \
 	G(r,7,v[ 3],v[ 4],v[ 9],v[14]); \
-  printf("[OCL_KNL]: r%d, i%d, a=0x%016lx, b=0x%016lx, c=0x%016lx, d=0x%016lx\n",r,7,v[ 3],v[ 4],v[ 9],v[14]); \
 //  for(i=0; i<16; i++){ \
 //    rv[r][i] = v[i]; \
 //    printf("[OCL_KNL]: rv[%d][%d] = 0x%016lx\n", r, i, rv[r][i]); \

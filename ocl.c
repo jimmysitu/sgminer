@@ -892,15 +892,15 @@ _clState *initCl(unsigned int gpu, char *name, size_t nameSize, algorithm_t *alg
   }
 
   applog(LOG_DEBUG, "Using output buffer sized %lu", BUFFERSIZE);
-  clState->outputBuffer = clCreateBuffer(clState->context, CL_MEM_WRITE_ONLY, BUFFERSIZE, NULL, &status);
+  clState->outputBuffer = clCreateBuffer(clState->context, CL_MEM_READ_WRITE, BUFFERSIZE, NULL, &status);
   if (status != CL_SUCCESS) {
     applog(LOG_ERR, "Error %d: clCreateBuffer (outputBuffer)", status);
     return NULL;
   }
-  
+
   //TODO: Jimmy, Initialising debug buffer
-  applog(LOG_DEBUG, "Using dbgBuffer buffer sized %lu", 2048);
-  clState->dbgBuffer = clCreateBuffer(clState->context, CL_MEM_WRITE_ONLY, 2048, NULL, &status);
+  applog(LOG_DEBUG, "Using dbgBuffer buffer sized %lu", DBGBUFSIZE);
+  clState->dbgBuffer = clCreateBuffer(clState->context, CL_MEM_WRITE_ONLY, DBGBUFSIZE, NULL, &status);
   if (status != CL_SUCCESS) {
     applog(LOG_ERR, "Error %d: clCreateBuffer (dbgBuffer)", status);
     return NULL;

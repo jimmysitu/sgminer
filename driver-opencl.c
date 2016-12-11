@@ -1448,9 +1448,9 @@ static int64_t opencl_scanhash(struct thr_info *thr, struct work *work,
     return -1;
   }
 
-  //TODO: Jimmy, read debug buffer to get internal status
+  //TODO: Jimmy, read debug buffer from kernel to get internal status
   cl_ulong dbgBuffer[13][16];
-  //if (thrdata->res[found]) {
+  //if (thrdata->res[found]) { // Jimmy, must read this buffer each time, unknown why
     status = clEnqueueReadBuffer(clState->commandQueue, clState->dbgBuffer, CL_FALSE, 0,
                                  13*16*(sizeof(cl_ulong)), dbgBuffer, 0, NULL, NULL);
     if (unlikely(status != CL_SUCCESS)) {
@@ -1481,16 +1481,17 @@ static int64_t opencl_scanhash(struct thr_info *thr, struct work *work,
     for(int i = 0; i < thrdata->res[found]; i++){
       applog(LOG_DEBUG, "[HW_ACC] Valid nonce: 0x%08X", thrdata->res[i]);
     }
+    //TODO, Jimmy, print dbgBuffer here to get real work
+    applog(LOG_DEBUG, "[HW_ACC] Target = 0x%016llX", *(cl_ulong *)(work->device_target + 24));
+    for(int i = 15; i >= 0; i--){
+      applog(LOG_DEBUG, "[HW_ACC] m[%d] = 0x%016llX", i, dbgBuffer[12][i]);
+    }
     //TODO, Jimmy, print dbgBuffer here to get internal status
     applog(LOG_DEBUG, "[HW_ACC] Internal status:");
     for(int i = 0; i < 12; i++){
       for(int j = 0; j < 16; j++){
         applog(LOG_DEBUG, "[HW_ACC] rv[%02d][%02d] = 0x%016llX", i, j, dbgBuffer[i][j]);
       }
-    }
-    applog(LOG_DEBUG, "[HW_ACC] Target = 0x%016llX", *(cl_ulong *)(work->device_target + 24));
-    for(int i = 15; i >= 0; i--){
-      applog(LOG_DEBUG, "[HW_ACC] m[%d] = 0x%016llX", i, dbgBuffer[12][i]);
     }
 
     applog(LOG_DEBUG, "GPU %d found something?", gpu->device_id);

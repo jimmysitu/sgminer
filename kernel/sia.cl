@@ -140,7 +140,6 @@ __kernel void search(__global unsigned char* block, volatile __global uint* outp
     }
     for(i = 0; i < 16; i++){
       dbgbuf[12][i] = m[i];
-      //printf("[OCL_KNL]: m[%d] = 0x%016lx\n", i, m[i]);
     }
   }
 }

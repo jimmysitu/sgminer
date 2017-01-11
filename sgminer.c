@@ -55,6 +55,11 @@ char *curly = ":D";
 #include "findnonce.h"
 #include "adl.h"
 #include "driver-opencl.h"
+
+#ifdef USE_EPIPHANY
+#include "driver-epiphany.h"
+#endif
+
 #include "bench_block.h"
 
 #include "algorithm.h"
@@ -161,6 +166,11 @@ bool opt_disable_pool;
 bool opt_disable_client_reconnect = false;
 static bool no_work;
 bool opt_worktime;
+
+#ifdef USE_EPIPHANY
+bool opt_epiphany;
+#endif
+
 #if defined(HAVE_LIBCURL) && defined(CURL_HAS_KEEPALIVE)
 int opt_tcp_keepalive = 30;
 #else
@@ -1395,7 +1405,11 @@ struct opt_table opt_config_table[] = {
   OPT_WITH_ARG("--expiry|-E",
       set_int_0_to_9999, opt_show_intval, &opt_expiry,
       "Upper bound on how many seconds after getting work we consider a share from it stale"),
-
+#ifdef  USE_EPIPHANY
+  OPT_WITHOUT_ARG("--epiphany",
+      set_set_bool, &opt_epiphany,
+      "Use the Epiphany device for mining"),
+#endif
   // event options
   OPT_WITH_ARG("--event-on",
       set_event_type, NULL, NULL,
@@ -8926,8 +8940,13 @@ int main(int argc, char *argv[])
   DRIVER_PARSE_COMMANDS(DRIVER_FILL_DEVICE_DRV)
 
   // this will set total_devices
+  // FIXME: Jimmy, do I need add an opt_opencl here?
   opencl_drv.drv_detect();
-
+#ifdef USE_EPIPHANY
+	if (opt_epiphany) {
+		epiphany_drv.drv_detect();
+	}
+#endif
   if (opt_display_devs) {
     applog(LOG_ERR, "Devices detected:");
     for (i = 0; i < total_devices; ++i) {

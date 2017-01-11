@@ -85,3 +85,8 @@ sgminer_SOURCES += algorithm/lbry.c algorithm/lbry.h
 
 bin_SCRIPTS	= $(top_srcdir)/kernel/*.cl
 
+if HAS_EPIPHANY
+sgminer_SOURCES 	+= driver-epiphany.h driver-epiphany.c
+sgminer_LDADD 		+= -L$(EPIPHANY_HOME)/tools/host/lib -le-hal
+sgminer_CPPFLAGS 	+= -I$(EPIPHANY_HOME)/tools/host/include
+endif # HAS_EPIPHANY

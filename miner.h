@@ -233,7 +233,8 @@ static inline int fsync (int fd)
  * the *_PARSE_COMMANDS macros for each listed driver.
  */
 #define DRIVER_PARSE_COMMANDS(DRIVER_ADD_COMMAND) \
-  DRIVER_ADD_COMMAND(opencl)
+  DRIVER_ADD_COMMAND(opencl)    \
+  DRIVER_ADD_COMMAND(epiphany)
 
 #define DRIVER_ENUM(X) DRIVER_##X,
 #define DRIVER_PROTOTYPE(X) struct device_drv X##_drv;

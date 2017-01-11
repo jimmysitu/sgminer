@@ -66,6 +66,7 @@ have_win32=false
 PTHREAD_FLAGS="-lpthread"
 DLOPEN_FLAGS="-ldl"
 OPENCL_LIBS="-lOpenCL"
+EPIPHANY_LIBS="-le-hal"
 WS2_LIBS=""
 MM_LIBS=""
 MATH_LIBS="-lm"
@@ -127,7 +128,12 @@ if test "x$have_win32" != xtrue; then
 	if test "x$AMDAPPSDKROOT" != x; then
 		OPENCL_FLAGS="-I$AMDAPPSDKROOT/include $OPENCL_FLAGS"
 		OPENCL_LIBS="-L$AMDAPPSDKROOT/lib/$ARCH_DIR $OPENCL_LIBS"
-	fi
+  fi
+
+  if test "x$EPIPHANY_HOME" != x; then
+		EPIPHANY_FLAGS="-I$EPIPHANY_HOME/tools/host/include $EPIPHANY_FLAGS"
+		EPIPHANY_LIBS="-L$EPIPHANY_HOME/tools/host/lib $EPIPHANY_LIBS"
+  fi
 fi
 
 have_sgminer_sdk=false
@@ -161,6 +167,26 @@ AC_LINK_IFELSE(
 LIBS=$SAVED_LIBS
 CFLAGS=$SAVED_CFLAGS
 
+# Check for EPIPHANY
+AC_MSG_CHECKING([for Epiphany])
+SAVED_LIBS=$LIBS
+SAVED_CFLAGS=$CFLAGS
+LIBS="$LIBS $EPIPHANY_LIBS"
+CFLAGS="$CFLAGS $EPIPHANY_FLAGS"
+AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([[
+		#include <e-hal.h>
+	]],
+	[[return e_init(NULL); ]])],
+	[AC_MSG_RESULT(yes)
+		found_epiphany=1],
+	[AC_MSG_RESULT(no)
+		EPIPHANY_FLAGS=
+		EPIPHANY_LIBS=
+		found_epiphany=0])
+LIBS=$SAVED_LIBS
+CFLAGS=$SAVED_CFLAGS
+
 has_pthread=false
 AC_CHECK_LIB(pthread, pthread_create, has_pthread=true)
 PTHREAD_LIBS=-lpthread
@@ -173,6 +199,7 @@ if test "x$has_pthread" != xtrue; then
 	fi
 fi
 
+
 AC_ARG_ENABLE([adl],
 	[AC_HELP_STRING([--disable-adl],[Override detection and disable building with ADL])],
 	[adl=$enableval]
@@ -181,6 +208,11 @@ AC_ARG_ENABLE([adl],
 AC_ARG_ENABLE([adl_checks],
 	[AC_HELP_STRING([--disable-adl-checks],[Override detection and assume ADL is available])],
 	[adl_checks=$enableval]
+	)
+
+AC_ARG_ENABLE([epiphany],
+	[AC_HELP_STRING([--disable-epiphany],[Override detection and disable building with Epiphany])],
+	[epiphany=$enableval]
 	)
 
 if test "$found_opencl" = 1; then
@@ -212,6 +244,14 @@ if test "$found_opencl" = 1; then
 else
 	DLOPEN_FLAGS=""
 fi
+
+if test "$found_epiphany" = 1; then
+  if test x$epiphany = xyes; then
+    has_epiphany=true
+  fi
+	AC_DEFINE([USE_EPIPHANY], [1], [Defined if Epiphany headers were found ])
+fi
+AM_CONDITIONAL([HAS_EPIPHANY], [test x$has_epiphany = xtrue])
 
 AC_ARG_ENABLE([git-version],
 	AS_HELP_STRING([--disable-git-version],
@@ -408,7 +448,14 @@ if test $found_opencl = 1; then
 	echo "  OpenCL...............: FOUND. GPU mining support enabled"
 else
 	echo "  OpenCL...............: NOT FOUND. GPU mining support DISABLED"
-	AC_MSG_ERROR([OpenCL not found])
+	dnl AC_MSG_ERROR([OpenCL not found])
+fi
+
+if test $found_epiphany = 1; then
+	echo "  Epiphany.............: FOUND. Epiphany mining support enabled"
+else
+	echo "  Epiphany.............: NOT FOUND. Epiphany mining support DISABLED"
+	dnl AC_MSG_ERROR([Epiphany not found])
 fi
 
 if test "x$adl" != xno; then

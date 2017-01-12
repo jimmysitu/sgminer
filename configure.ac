@@ -177,7 +177,7 @@ AC_LINK_IFELSE(
 	[AC_LANG_PROGRAM([[
 		#include <e-hal.h>
 	]],
-	[[return e_init(NULL); ]])],
+	[[return e_init(0); ]])],
 	[AC_MSG_RESULT(yes)
 		found_epiphany=1],
 	[AC_MSG_RESULT(no)
@@ -246,7 +246,7 @@ else
 fi
 
 if test "$found_epiphany" = 1; then
-  if test x$epiphany = xyes; then
+  if test x$epiphany != xno; then
     has_epiphany=true
   fi
 	AC_DEFINE([USE_EPIPHANY], [1], [Defined if Epiphany headers were found ])

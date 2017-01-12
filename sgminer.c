@@ -1407,7 +1407,7 @@ struct opt_table opt_config_table[] = {
       "Upper bound on how many seconds after getting work we consider a share from it stale"),
 #ifdef  USE_EPIPHANY
   OPT_WITHOUT_ARG("--epiphany",
-      set_set_bool, &opt_epiphany,
+      opt_set_bool, &opt_epiphany,
       "Use the Epiphany device for mining"),
 #endif
   // event options

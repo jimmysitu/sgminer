@@ -31,12 +31,8 @@
 #endif
 
 #ifdef USE_EPIPHANY
-
   #include <e-hal.h>
-  #include "epiphany-mailbox.h"
-
   #define _BufOffset (0x01000000)
-
   extern struct device_drv epiphany_drv;
 #endif
 

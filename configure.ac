@@ -452,7 +452,11 @@ else
 fi
 
 if test $found_epiphany = 1; then
-	echo "  Epiphany.............: FOUND. Epiphany mining support enabled"
+  if test x$epiphany != xno; then
+	  echo "  Epiphany.............: FOUND. Epiphany mining support enabled"
+  else
+	  echo "  Epiphany.............: FOUND. but Epiphany mining support DISABLED"
+  fi
 else
 	echo "  Epiphany.............: NOT FOUND. Epiphany mining support DISABLED"
 	dnl AC_MSG_ERROR([Epiphany not found])

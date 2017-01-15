@@ -246,10 +246,12 @@ else
 fi
 
 if test "$found_epiphany" = 1; then
-  if test x$epiphany != xno; then
+  if test "x$epiphany" != xno; then
     has_epiphany=true
+	  AC_DEFINE([USE_EPIPHANY], [1], [Defined if Epiphany headers were found ])
+  else
+    has_epiphany=false
   fi
-	AC_DEFINE([USE_EPIPHANY], [1], [Defined if Epiphany headers were found ])
 fi
 AM_CONDITIONAL([HAS_EPIPHANY], [test x$has_epiphany = xtrue])
 
@@ -451,15 +453,15 @@ else
 	dnl AC_MSG_ERROR([OpenCL not found])
 fi
 
-if test $found_epiphany = 1; then
-  if test x$epiphany != xno; then
+if test x$epiphany != xno; then
+  if test $found_epiphany = 1; then
 	  echo "  Epiphany.............: FOUND. Epiphany mining support enabled"
   else
-	  echo "  Epiphany.............: FOUND. but Epiphany mining support DISABLED"
+	  echo "  Epiphany.............: NOT FOUND. Epiphany mining support DISABLED"
+	  dnl AC_MSG_ERROR([Epiphany not found])
   fi
 else
-	echo "  Epiphany.............: NOT FOUND. Epiphany mining support DISABLED"
-	dnl AC_MSG_ERROR([Epiphany not found])
+	echo "  Epiphany.............: Detection overrided. Epiphany mining support DISABLED"
 fi
 
 if test "x$adl" != xno; then

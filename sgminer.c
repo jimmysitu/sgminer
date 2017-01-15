@@ -166,11 +166,6 @@ bool opt_disable_pool;
 bool opt_disable_client_reconnect = false;
 static bool no_work;
 bool opt_worktime;
-
-#ifdef USE_EPIPHANY
-bool opt_epiphany;
-#endif
-
 #if defined(HAVE_LIBCURL) && defined(CURL_HAS_KEEPALIVE)
 int opt_tcp_keepalive = 30;
 #else
@@ -1405,11 +1400,7 @@ struct opt_table opt_config_table[] = {
   OPT_WITH_ARG("--expiry|-E",
       set_int_0_to_9999, opt_show_intval, &opt_expiry,
       "Upper bound on how many seconds after getting work we consider a share from it stale"),
-#ifdef  USE_EPIPHANY
-  OPT_WITHOUT_ARG("--epiphany",
-      opt_set_bool, &opt_epiphany,
-      "Use the Epiphany device for mining"),
-#endif
+
   // event options
   OPT_WITH_ARG("--event-on",
       set_event_type, NULL, NULL,

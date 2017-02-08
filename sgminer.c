@@ -176,6 +176,10 @@ double opt_diff_mult = 0.0;
 char *opt_kernel_path;
 char *sgminer_path;
 
+#ifdef USE_EPIPHANY
+bool opt_epiphany = false;
+#endif
+
 #define QUIET (opt_quiet || opt_realquiet)
 
 struct thr_info *control_thr;
@@ -1835,6 +1839,11 @@ struct opt_table opt_config_table[] = {
   OPT_WITH_ARG("--difficulty-multiplier",
       set_difficulty_multiplier, NULL, NULL,
       "(deprecated) Difficulty multiplier for jobs received from stratum pools"),
+#ifdef USE_EPIPHANY
+  OPT_WITHOUT_ARG("--epiphany",
+      opt_set_bool, &opt_epiphany,
+      "Enable mining with Epiphany"),
+#endif
   OPT_ENDTABLE
 };
 

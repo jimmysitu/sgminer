@@ -1279,7 +1279,7 @@ static bool opencl_thread_prepare(struct thr_info *thr)
   if (!blank_res)
     blank_res = (uint32_t *)calloc(buffersize, 1);
   if (!blank_res) {
-    applog(LOG_ERR, "Failed to calloc in opencl_thread_init");
+    applog(LOG_ERR, "Failed to calloc in opencl_thread_prepare");
     return false;
   }
 

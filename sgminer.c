@@ -8940,7 +8940,7 @@ int main(int argc, char *argv[])
   DRIVER_PARSE_COMMANDS(DRIVER_FILL_DEVICE_DRV)
 
   // this will set total_devices
-  // FIXME: Jimmy, do I need add an opt_opencl here?
+  // FIXME: Jimmy, I need add an opt_opencl here
   opencl_drv.drv_detect();
 #ifdef USE_EPIPHANY
 	if (opt_epiphany) {
@@ -9153,7 +9153,11 @@ int main(int argc, char *argv[])
     quit(1, "watchdog thread create failed");
   pthread_detach(thr->pth);
 
+  // FIXME, Jimmy, Need special mask, no need for other platform except opencl
+  // mask with USE_OPENCL and opt_opencl
   /* Create reinit gpu thread */
+  // FIXME, ifdef USE_OPENCL
+  // FIXME, if (opt_opencl){
   gpur_thr_id = 4;
   thr = &control_thr[gpur_thr_id];
   thr->q = tq_new();
@@ -9161,6 +9165,8 @@ int main(int argc, char *argv[])
     quit(1, "tq_new failed for gpur_thr_id");
   if (thr_info_create(thr, NULL, reinit_gpu, thr))
     quit(1, "reinit_gpu thread create failed");
+  // FIXME, }
+  // FIXME, endif
 
   /* Create API socket thread */
   api_thr_id = 5;

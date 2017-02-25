@@ -40,18 +40,13 @@ sgminer_SOURCES	+= api.c api.h
 sgminer_SOURCES	+= elist.h miner.h compat.h bench_block.h
 sgminer_SOURCES	+= util.c util.h uthash.h
 sgminer_SOURCES	+= logging.c logging.h
-sgminer_SOURCES += driver-opencl.c driver-opencl.h
-sgminer_SOURCES += ocl.c ocl.h
 sgminer_SOURCES += findnonce.c findnonce.h
 sgminer_SOURCES += adl.c adl.h adl_functions.h
 sgminer_SOURCES += pool.c pool.h
 sgminer_SOURCES += algorithm.c algorithm.h
 sgminer_SOURCES += config_parser.c config_parser.h
 sgminer_SOURCES += events.c events.h
-sgminer_SOURCES += ocl/build_kernel.c ocl/build_kernel.h
-sgminer_SOURCES += ocl/binary_kernel.c ocl/binary_kernel.h
 
-sgminer_SOURCES += kernel/*.cl
 sgminer_SOURCES += algorithm/scrypt.c algorithm/scrypt.h
 sgminer_SOURCES += algorithm/darkcoin.c algorithm/darkcoin.h
 sgminer_SOURCES += algorithm/qubitcoin.c algorithm/qubitcoin.h
@@ -84,6 +79,14 @@ sgminer_SOURCES += algorithm/sia.c algorithm/sia.h
 sgminer_SOURCES += algorithm/lbry.c algorithm/lbry.h
 
 bin_SCRIPTS	= $(top_srcdir)/kernel/*.cl
+
+#FIXME, if HAS_OPENCL
+sgminer_SOURCES += driver-opencl.c driver-opencl.h
+sgminer_SOURCES += ocl.c ocl.h
+sgminer_SOURCES += ocl/build_kernel.c ocl/build_kernel.h
+sgminer_SOURCES += ocl/binary_kernel.c ocl/binary_kernel.h
+sgminer_SOURCES += kernel/*.cl
+#FIXME, endif
 
 if HAS_EPIPHANY
 sgminer_SOURCES 	+= driver-epiphany.h driver-epiphany.c

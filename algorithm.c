@@ -9,8 +9,10 @@
 
 #include "algorithm.h"
 #include "sph/sph_sha2.h"
+// FIXME, ifdef USE_OPENCL
 #include "ocl.h"
 #include "ocl/build_kernel.h"
+// FIXME, endif
 
 #include "algorithm/scrypt.h"
 #include "algorithm/animecoin.h"
@@ -113,6 +115,7 @@ void sha256d_midstate(struct work *work)
   endian_flip32(work->midstate, work->midstate);
 }
 
+// FIXME, ifdef USE_OPENCL
 #define CL_SET_BLKARG(blkvar) status |= clSetKernelArg(*kernel, num++, sizeof(uint), (void *)&blk->blkvar)
 #define CL_SET_VARG(args, var) status |= clSetKernelArg(*kernel, num++, args * sizeof(uint), (void *)var)
 #define CL_SET_ARG_N(n, var) do { status |= clSetKernelArg(*kernel, n, sizeof(var), (void *)&var); } while (0)
@@ -1020,7 +1023,6 @@ static cl_int queue_sia_kernel(struct __clState *clState, struct _dev_blk_ctx *b
 
   le_target = *(cl_ulong *)(blk->work->device_target + 24);
   flip80(clState->cldata, blk->work->data);
-  //TODO: Jimmy, print clState->cldata here, and get the real work data
 
   status = clEnqueueWriteBuffer(clState->commandQueue, clState->CLbuffer0, true, 0, 80, clState->cldata, 0, NULL, NULL);
 
@@ -1028,7 +1030,6 @@ static cl_int queue_sia_kernel(struct __clState *clState, struct _dev_blk_ctx *b
   CL_SET_ARG(clState->outputBuffer);
   CL_SET_ARG(le_target);
 
-  //TODO: Jimmy, set debug buffer as kernel arg to get internal status
   CL_SET_ARG(clState->dbgBuffer);
 
   return status;
@@ -1058,6 +1059,7 @@ static cl_int queue_lbry_kernel(struct __clState *clState, struct _dev_blk_ctx *
 
   return status;
 }
+
 
 static algorithm_settings_t algos[] = {
   // kernels starting from this will have difficulty calculated by using litecoin algorithm
@@ -1162,6 +1164,7 @@ static algorithm_settings_t algos[] = {
   // Terminator (do not remove)
   { NULL, ALGO_UNK, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL }
 };
+// FIXME, endif
 
 void copy_algorithm_settings(algorithm_t* dest, const char* algo)
 {

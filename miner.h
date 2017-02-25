@@ -544,7 +544,7 @@ struct cgpu_info {
   struct thr_info **thr;
 
   int64_t max_hashes;
-
+//FIXME, ifdef USE_OPENCL
   bool mapped;
   int virtual_gpu;
   int virtual_adl;
@@ -557,13 +557,14 @@ struct cgpu_info {
   cl_uint vwidth;
   size_t work_size;
   cl_ulong max_alloc;
-  algorithm_t algorithm;
 
   int opt_lg, lookup_gap;
   size_t opt_tc, thread_concurrency;
   size_t shaders;
   struct timeval tv_gpustart;
   int intervals;
+ // FIXME, endif
+  algorithm_t algorithm;
 
   bool new_work;
 
@@ -583,6 +584,14 @@ struct cgpu_info {
   int gpu_powertune;
   float gpu_vddc;
 #endif
+
+#ifdef USE_EPIPHANY
+	e_epiphany_t epiphany_dev;
+	e_mem_t epiphany_emem;
+	unsigned epiphany_rows;
+	unsigned epiphany_cols;
+#endif
+
   double diff1;
   double diff_accepted;
   double diff_rejected;

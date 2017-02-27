@@ -90,6 +90,6 @@ sgminer_SOURCES += kernel/*.cl
 
 if HAS_EPIPHANY
 sgminer_SOURCES 	+= driver-epiphany.h driver-epiphany.c
-sgminer_LDADD 		+= -L$(EPIPHANY_HOME)/tools/host/lib -le-hal -le-loader
-sgminer_CPPFLAGS 	+= -I$(EPIPHANY_HOME)/tools/host/include
+sgminer_LDADD 		+= @EPIPHANY_LIBS@
+sgminer_CPPFLAGS 	+= @EPIPHANY_FLAGS@
 endif # HAS_EPIPHANY

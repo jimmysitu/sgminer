@@ -46,6 +46,9 @@ static void epiphany_detect()
 
 static bool epiphany_thread_prepare(struct thr_info *thr)
 {
+  struct timeval now;
+  struct cgpu_info *cgpu = thr->cgpu;
+
 	e_epiphany_t *dev = &thr->cgpu->epiphany_dev;
 	e_mem_t *emem = &thr->cgpu->epiphany_emem;
 	unsigned rows = thr->cgpu->epiphany_rows;
@@ -84,10 +87,12 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
 		return false;
 	}
 
-	thread_reportin(thr);
+  cgtime(&now);
+  get_datestamp(cgpu->init, sizeof(cgpu->init), &now);
 
 	return true;
 }
+
 static bool epiphany_thread_init(struct thr_info *thr)
 {
   const int thr_id = thr->id;
@@ -110,116 +115,7 @@ static bool epiphany_prepare_work(struct thr_info __maybe_unused *thr, struct wo
   thr->pool_no = work->pool->pool_no;
   return true;
 }
-static bool epiphany_scrypt(struct thr_info *thr, const unsigned char __maybe_unused *pmidstate,
-		     unsigned char *pdata, unsigned char __maybe_unused *phash1,
-		     unsigned char __maybe_unused *phash, const unsigned char *ptarget,
-		     uint32_t max_nonce, uint32_t *last_nonce, uint32_t n)
-{
 
-	uint32_t i;
-	e_epiphany_t *dev = &thr->cgpu->epiphany_dev;
-	e_mem_t *emem = &thr->cgpu->epiphany_emem;
-	unsigned rows = thr->cgpu->epiphany_rows;
-	unsigned cols = thr->cgpu->epiphany_cols;
-
-	uint8_t *core_working = calloc(rows*cols, sizeof(uint8_t));
-	uint32_t *core_nonce = calloc(rows*cols, sizeof(uint32_t));
-	uint32_t cores_working = 0;
-
-	uint32_t *nonce = (uint32_t *)(pdata + 76);
-
-	uint32_t ostate;
-	uint32_t data[20];
-	const uint8_t core_go = 1;
-
-	uint32_t tmp_hash7;
-	uint32_t Htarg = ((const uint32_t *)ptarget)[7];
-	bool ret = false;
-
-	be32enc_vect(data, (const uint32_t *)pdata, 19);
-
-	if (e_start_group(dev) == E_ERR) {
-		applog(LOG_ERR, "Error: Could not start Epiphany cores.");
-		return false;
-	}
-
-	off_t offdata = offsetof(shared_buf_t, data);
-	off_t offostate = offsetof(shared_buf_t, ostate);
-	off_t offcorego = offsetof(shared_buf_t, go);
-	off_t offcoreend = offsetof(shared_buf_t, working);
-	off_t offcore;
-
-#ifdef EPIPHANY_DEBUG
-	#define SCRATCHBUF_SIZE	(131584)
-	uint32_t ostate2[8];
-	char *scratchbuf = malloc(SCRATCHBUF_SIZE);
-	uint32_t *ostatearm = calloc(rows*cols, sizeof(uint32_t));
-#endif
-
-	i = 0;
-	while(1) {
-
-		offcore = i * sizeof(shared_buf_t);
-
-		if ((!core_working[i]) && (n < max_nonce)) {
-
-			*nonce = ++n;
-			data[19] = n;
-			core_working[i] = 1;
-			cores_working++;
-			core_nonce[i] = n;
-
-#ifdef EPIPHANY_DEBUG
-			scrypt_1024_1_1_256_sp(data, scratchbuf, ostate2);
-			ostatearm[i] = ostate2[7];
-#endif
-
-			e_write(emem, 0, 0, offcore + offdata, (void *) data, sizeof(data));
-			e_write(emem, 0, 0, offcore + offcoreend, (void *) &core_working[i], sizeof(core_working[i]));
-			e_write(emem, 0, 0, offcore + offcorego, (void *) &core_go, sizeof(core_go));
-
-		}
-
-		e_read(emem, 0, 0, offcore + offcoreend, (void *) &(core_working[i]), sizeof(core_working[i]));
-
-		if (!core_working[i]) {
-
-			e_read(emem, 0, 0, offcore + offostate, (void *) &(ostate), sizeof(ostate));
-#ifdef EPIPHANY_DEBUG
-			applog(LOG_DEBUG, "CORE %u - EPI HASH %u - ARM HASH %u - %s", i, ostate, ostatearm[i], ((ostate==ostatearm[i])? "OK":"FAIL"));
-#endif
-			tmp_hash7 = be32toh(ostate);
-			cores_working--;
-			if (unlikely(tmp_hash7 <= Htarg)) {
-				((uint32_t *)pdata)[19] = htobe32(core_nonce[i]);
-				*last_nonce = core_nonce[i];
-#ifdef EPIPHANY_DEBUG
-				free(scratchbuf);
-#endif
-				return true;
-			}
-
-		}
-
-		if (unlikely(((n >= max_nonce) && !cores_working) || thr->work_restart)) {
-			*last_nonce = n;
-#ifdef EPIPHANY_DEBUG
-			free(scratchbuf);
-#endif
-			return false;
-		}
-
-		i++;
-		i %= rows * cols;
-
-	}
-
-#ifdef EPIPHANY_DEBUG
-	free(scratchbuf);
-#endif
-
-	return false;
-}
 
 static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
   int64_t __maybe_unused max_nonce)
@@ -230,38 +126,8 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
 	uint32_t last_nonce;
 	bool rc;
 
-	hex2bin(hash1, "00000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000010000", 64);
-EPIPHANYSearch:
-	last_nonce = first_nonce;
-	rc = false;
-
-	/* scan nonces for a proof-of-work hash */
-	{
-		rc = epiphany_scrypt(
-			thr,
-			work->midstate,
-			work->data,
-			hash1,
-			work->hash,
-			work->target,
-			max_nonce,
-			&last_nonce,
-			work->blk.nonce
-		);
-	}
-	/* if nonce found, submit work */
-	if (unlikely(rc)) {
-		applog(LOG_DEBUG, "EPIPHANY %d found something?", dev_from_id(thr_id));
-		submit_work_async(work, NULL);
-		work->blk.nonce = last_nonce + 1;
-		goto EPIPHANYSearch;
-	}
-	else
-	if (unlikely(last_nonce == first_nonce))
-		return 0;
-
-	work->blk.nonce = last_nonce + 1;
-	return last_nonce - first_nonce + 1;
+  int64_t hashes = 100;
+	return hashes;
 }
 
 static void epiphany_thread_shutdown(__maybe_unused struct thr_info *thr)

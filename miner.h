@@ -112,7 +112,7 @@ static inline int fsync (int fd)
     } while (0)
   #endif
  #ifndef timeradd
- # define timeradd(a, b, result)            \
+  #define timeradd(a, b, result)            \
    do {                   \
     (result)->tv_sec = (a)->tv_sec + (b)->tv_sec;       \
     (result)->tv_usec = (a)->tv_usec + (b)->tv_usec;        \
@@ -128,6 +128,10 @@ static inline int fsync (int fd)
 
 #ifdef HAVE_ADL
  #include "ADL_SDK/adl_sdk.h"
+#endif
+
+#ifdef USE_EPIPHANY
+ #include <e-hal.h>
 #endif
 
 #if (!defined(WIN32) && ((__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))) \

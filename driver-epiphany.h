@@ -32,8 +32,20 @@
 
 #ifdef USE_EPIPHANY
   #include <e-hal.h>
-  #define _BufOffset (0x01000000)
-  extern struct device_drv epiphany_drv;
+  #include <e-loader.h>
+#endif
+
+#ifdef USE_EPIPHANY
+#define _BufOffset (0x01000000)
+extern struct device_drv epiphany_drv;
+typedef struct _shared_buf_t {
+	uint8_t data[256];
+  uint64_t target;
+	volatile uint32_t outputBuffer;
+	volatile uint8_t start;         // Start flag, set by host
+	volatile uint8_t found;         // Nonce found flag, set by device
+} shared_buf_t;
+
 #endif
 
 #endif /* __DEVICE_EPI_H__ */

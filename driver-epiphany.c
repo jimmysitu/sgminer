@@ -21,7 +21,7 @@ void print_epi_ndevs(int *ndevs)
   applog(LOG_INFO, "%i EPI devices max detected", *ndevs);
 }
 
-struct cgpu_info epis[MAX_GPUDEVICES]; /* Maximum number apparently possible */
+struct cgpu_info epis[MAX_EPIDEVICES]; /* Maximum number apparently possible */
 struct cgpu_info *cpus;
 
 static void epiphany_detect()

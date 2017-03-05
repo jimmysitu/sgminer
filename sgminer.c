@@ -1863,10 +1863,10 @@ char *display_devs(int *ndevs)
 {
   *ndevs = 0;
 #ifdef USE_OPENCL
-  print_ndevs(ndevs);
+  print_ocl_ndevs(ndevs);
 #endif
 #ifdef USE_EPIPHANY
-  print_ndevs(ndevs);
+  print_epi_ndevs(ndevs);
 #endif
   exit(*ndevs);
 }

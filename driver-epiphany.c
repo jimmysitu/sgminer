@@ -14,13 +14,12 @@
 extern void submit_work_async(struct work *work_in, struct timeval *tv_work_found);
 extern int dev_from_id(int thr_id);
 
-void print_ndevs(int *ndevs)
+void print_epi_ndevs(int *ndevs)
 {
   opt_verbose = true;
   epiphany_drv.drv_detect();
-  applog(LOG_INFO, "%i GPU devices max detected", *ndevs);
+  applog(LOG_INFO, "%i EPI devices max detected", *ndevs);
 }
-
 
 static void epiphany_detect()
 {

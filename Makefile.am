@@ -81,10 +81,10 @@ sgminer_SOURCES += algorithm/lbry.c algorithm/lbry.h
 bin_SCRIPTS	= $(top_srcdir)/kernel/*.cl
 
 if HAS_OPENCL
-sgminer_SOURCES 	+= driver-opencl.c driver-opencl.h
 sgminer_SOURCES 	+= ocl.c ocl.h
 sgminer_SOURCES 	+= ocl/build_kernel.c ocl/build_kernel.h
 sgminer_SOURCES 	+= ocl/binary_kernel.c ocl/binary_kernel.h
+sgminer_SOURCES 	+= driver-opencl.c driver-opencl.h
 sgminer_SOURCES 	+= kernel/*.cl
 sgminer_LDADD 		+= @OPENCL_LIBS@ 
 sgminer_CPPFLAGS 	+= @OPENCL_FLAGS@ 
@@ -95,3 +95,4 @@ sgminer_SOURCES 	+= driver-epiphany.h driver-epiphany.c
 sgminer_LDADD 		+= @EPIPHANY_LIBS@
 sgminer_CPPFLAGS 	+= @EPIPHANY_FLAGS@
 endif # HAS_EPIPHANY
+

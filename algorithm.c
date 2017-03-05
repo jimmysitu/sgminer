@@ -7,6 +7,7 @@
  * your option) any later version.  See COPYING for more details.
  */
 
+#include "config.h"
 #include "algorithm.h"
 #include "sph/sph_sha2.h"
 
@@ -216,7 +217,7 @@ static void append_x13_compiler_options(struct _build_kernel_data *data, struct 
 #endif
 
 #ifdef USE_OPENCL
-static cl_int queue_scrypt_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
+static cl_int queue_scrypt_kernel(_clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   unsigned char *midstate = blk->work->midstate;
   cl_kernel *kernel = &clState->kernel;

@@ -1,6 +1,8 @@
 #ifndef ALGORITHM_H
 #define ALGORITHM_H
 
+#include "config.h"
+
 #ifdef __APPLE_CC__
 #include <OpenCL/opencl.h>
 #else
@@ -9,7 +11,11 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+
+
+#ifdef USE_OPENCL
 #include "ocl/build_kernel.h"   // For the build_kernel_data type
+#endif
 
 typedef enum {
   ALGO_UNK,
@@ -46,7 +52,9 @@ extern const char *algorithm_type_str[];
 
 extern void gen_hash(const unsigned char *data, unsigned int len, unsigned char *hash);
 
+#ifdef USE_OPENCL
 struct __clState;
+#endif
 struct _dev_blk_ctx;
 struct _build_kernel_data;
 struct cgpu_info;
@@ -71,7 +79,7 @@ typedef struct _algorithm_t {
   uint32_t diff1targ;
   size_t n_extra_kernels;
   long rw_buffer_size;
-#ifdef HAS_OPENCL
+#ifdef USE_OPENCL
   cl_command_queue_properties cq_properties;
 #else
   int cq_properties;
@@ -79,7 +87,7 @@ typedef struct _algorithm_t {
   void(*regenhash)(struct work *);
   void(*calc_midstate)(struct work *);
   void(*prepare_work)(struct _dev_blk_ctx *, uint32_t *, uint32_t *);
-#ifdef HAS_OPENCL
+#ifdef USE_OPENCL
   cl_int(*queue_kernel)(struct __clState *, struct _dev_blk_ctx *, cl_uint);
 #else
   int(*queue_kernel)();
@@ -103,7 +111,7 @@ typedef struct _algorithm_settings_t
 	uint32_t diff1targ;
 	size_t n_extra_kernels;
 	long rw_buffer_size;
-#ifdef HAS_OPENCL
+#ifdef USE_OPENCL
 	cl_command_queue_properties cq_properties;
 #else
   int cq_properties;
@@ -111,7 +119,7 @@ typedef struct _algorithm_settings_t
 	void     (*regenhash)(struct work *);
 	void     (*calc_midstate)(struct work *);
 	void     (*prepare_work)(struct _dev_blk_ctx *, uint32_t *, uint32_t *);
-#ifdef HAS_OPENCL
+#ifdef USE_OPENCL
 	cl_int   (*queue_kernel)(struct __clState *, struct _dev_blk_ctx *, cl_uint);
 #else
 	int   (*queue_kernel)();

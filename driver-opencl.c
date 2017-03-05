@@ -683,7 +683,7 @@ char *set_rawintensity(const char *_arg)
   return NULL;
 }
 
-void print_ndevs(int *ndevs)
+void print_ocl_ndevs(int *ndevs)
 {
   opt_verbose = true;
   opencl_drv.drv_detect();

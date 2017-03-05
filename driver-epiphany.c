@@ -21,6 +21,9 @@ void print_epi_ndevs(int *ndevs)
   applog(LOG_INFO, "%i EPI devices max detected", *ndevs);
 }
 
+struct cgpu_info epis[MAX_GPUDEVICES]; /* Maximum number apparently possible */
+struct cgpu_info *cpus;
+
 static void epiphany_detect()
 {
 	e_platform_t platform;
@@ -39,6 +42,7 @@ static void epiphany_detect()
 	if (unlikely(!epiphany))
 		quit(1, "Failed to malloc epiphany");
 
+  nDevs = 1;    // Support only 1 epiphany for now
 	epiphany->drv = &epiphany_drv;
 	epiphany->deven = DEV_ENABLED;
 	epiphany->threads = 1;

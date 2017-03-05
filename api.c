@@ -1408,6 +1408,7 @@ static const char *status2str(enum alive status)
   }
 }
 
+#ifdef USE_OPENCL
 static void gpustatus(struct io_data *io_data, int gpu, bool isjson, bool precom)
 {
   struct api_data *root = NULL;
@@ -1494,6 +1495,7 @@ static void gpustatus(struct io_data *io_data, int gpu, bool isjson, bool precom
     io_add(io_data, buf);
   }
 }
+#endif
 
 static void devstatus(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __maybe_unused char *param, bool isjson, __maybe_unused char group)
 {
@@ -1513,15 +1515,27 @@ static void devstatus(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __ma
   if (isjson)
     io_open = io_add(io_data, COMSTR JSON_DEVS);
 
+#ifdef USE_OPENCL
   for (i = 0; i < nDevs; i++) {
     gpustatus(io_data, i, isjson, isjson && devcount > 0);
 
     devcount++;
   }
+#endif
+
+#ifdef USE_EPIPHANY
+  for (i = 0; i < nDevs; i++) {
+    //FIXME, epistatus(io_data, i, isjson, isjson && devcount > 0);
+
+    devcount++;
+  }
+#endif
+
   if (isjson && io_open)
     io_close(io_data);
 }
 
+#ifdef USE_OPENCL
 static void gpudev(struct io_data *io_data, __maybe_unused SOCKETTYPE c, char *param, bool isjson, __maybe_unused char group)
 {
   bool io_open = false;
@@ -1553,6 +1567,7 @@ static void gpudev(struct io_data *io_data, __maybe_unused SOCKETTYPE c, char *p
   if (isjson && io_open)
     io_close(io_data);
 }
+#endif
 
 static void poolstatus(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __maybe_unused char *param, bool isjson, __maybe_unused char group)
 {
@@ -1733,6 +1748,7 @@ static void summary(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __mayb
     io_close(io_data);
 }
 
+#ifdef USE_OPENCL
 static void gpuenable(struct io_data *io_data, __maybe_unused SOCKETTYPE c, char *param, bool isjson, __maybe_unused char group)
 {
   struct thr_info *thr;
@@ -1782,7 +1798,9 @@ static void gpuenable(struct io_data *io_data, __maybe_unused SOCKETTYPE c, char
 
   message(io_data, MSG_GPUREN, id, NULL, isjson);
 }
+#endif
 
+#ifdef USE_OPENCL
 static void gpudisable(struct io_data *io_data, __maybe_unused SOCKETTYPE c, char *param, bool isjson, __maybe_unused char group)
 {
   int id;
@@ -1815,7 +1833,9 @@ static void gpudisable(struct io_data *io_data, __maybe_unused SOCKETTYPE c, cha
 
   message(io_data, MSG_GPUDIS, id, NULL, isjson);
 }
+#endif
 
+#ifdef USE_OPENCL
 static void gpurestart(struct io_data *io_data, __maybe_unused SOCKETTYPE c, char *param, bool isjson, __maybe_unused char group)
 {
   int id;
@@ -1840,7 +1860,9 @@ static void gpurestart(struct io_data *io_data, __maybe_unused SOCKETTYPE c, cha
 
   message(io_data, MSG_GPUREI, id, NULL, isjson);
 }
+#endif
 
+#ifdef USE_OPENCL
 static void gpucount(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __maybe_unused char *param, bool isjson, __maybe_unused char group)
 {
   struct api_data *root = NULL;
@@ -1859,6 +1881,7 @@ static void gpucount(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __may
   if (isjson && io_open)
     io_close(io_data);
 }
+#endif
 
 static void switchpool(struct io_data *io_data, __maybe_unused SOCKETTYPE c, char *param, bool isjson, __maybe_unused char group)
 {
@@ -2310,6 +2333,7 @@ static bool splitgpuvalue(struct io_data *io_data, char *param, int *gpu, char *
   return true;
 }
 
+#ifdef USE_OPENCL
 static void gpuintensity(struct io_data *io_data, __maybe_unused SOCKETTYPE c, char *param, bool isjson, __maybe_unused char group)
 {
   int id;
@@ -2343,7 +2367,9 @@ static void gpuintensity(struct io_data *io_data, __maybe_unused SOCKETTYPE c, c
 
   message(io_data, MSG_GPUINT, id, intensitystr, isjson);
 }
+#endif
 
+#ifdef USE_OPENCL
 static void gpuxintensity(struct io_data *io_data, __maybe_unused SOCKETTYPE c, char *param, bool isjson, __maybe_unused char group)
 {
   int id;
@@ -2371,7 +2397,9 @@ static void gpuxintensity(struct io_data *io_data, __maybe_unused SOCKETTYPE c, 
 
   message(io_data, MSG_GPUXINT, id, intensitystr, isjson);
 }
+#endif
 
+#ifdef USE_OPENCL
 static void gpurawintensity(struct io_data *io_data, __maybe_unused SOCKETTYPE c, char *param, bool isjson, __maybe_unused char group)
 {
   int id;
@@ -2399,7 +2427,9 @@ static void gpurawintensity(struct io_data *io_data, __maybe_unused SOCKETTYPE c
 
   message(io_data, MSG_GPURAWINT, id, intensitystr, isjson);
 }
+#endif
 
+#ifdef USE_OPENCL
 static void gpumem(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __maybe_unused char *param, bool isjson, __maybe_unused char group)
 {
 #ifdef HAVE_ADL
@@ -2420,7 +2450,9 @@ static void gpumem(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __maybe
   message(io_data, MSG_NOADL, 0, NULL, isjson);
 #endif
 }
+#endif
 
+#ifdef USE_OPENCL
 static void gpuengine(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __maybe_unused char *param, bool isjson, __maybe_unused char group)
 {
 #ifdef HAVE_ADL
@@ -2441,7 +2473,9 @@ static void gpuengine(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __ma
   message(io_data, MSG_NOADL, 0, NULL, isjson);
 #endif
 }
+#endif
 
+#ifdef USE_OPENCL
 static void gpufan(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __maybe_unused char *param, bool isjson, __maybe_unused char group)
 {
 #ifdef HAVE_ADL
@@ -2462,7 +2496,9 @@ static void gpufan(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __maybe
   message(io_data, MSG_NOADL, 0, NULL, isjson);
 #endif
 }
+#endif
 
+#ifdef USE_OPENCL
 static void gpuvddc(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __maybe_unused char *param, bool isjson, __maybe_unused char group)
 {
 #ifdef HAVE_ADL
@@ -2483,6 +2519,7 @@ static void gpuvddc(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __mayb
   message(io_data, MSG_NOADL, 0, NULL, isjson);
 #endif
 }
+#endif
 
 void doquit(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __maybe_unused char *param, bool isjson, __maybe_unused char group)
 {
@@ -2977,11 +3014,13 @@ struct CMDS {
   { "pools",    poolstatus, false,  true },
   { "profiles",    api_profile_list, false,  true },
   { "summary",    summary,  false,  true },
+#ifdef USE_OPENCL
   { "gpuenable",          gpuenable,      true, false },
   { "gpudisable",         gpudisable,     true, false },
   { "gpurestart",         gpurestart,     true, false },
   { "gpu",                gpudev,         false,  false },
   { "gpucount",           gpucount,       false,  true },
+#endif
   { "switchpool",   switchpool, true, false },
   { "changestrategy",   api_pool_strategy, true, false },
   { "addpool",    addpool,  true, false },
@@ -2993,6 +3032,7 @@ struct CMDS {
   { "changepoolprofile",   api_pool_profile, true, false },
   { "addprofile",    api_profile_add,  true, false },
   { "removeprofile",    api_profile_remove,  true, false },
+#ifdef USE_OPENCL
   { "gpuintensity",       gpuintensity,   true, false },
   { "gpuxintensity",       gpuxintensity,   true, false },
   { "gpurawintensity",       gpurawintensity,   true, false },
@@ -3000,6 +3040,7 @@ struct CMDS {
   { "gpuengine",          gpuengine,      true, false },
   { "gpufan",             gpufan,         true, false },
   { "gpuvddc",            gpuvddc,        true, false },
+#endif
   { "save",   dosave,   true, false },
   { "quit",   doquit,   true, false },
   { "privileged",   privileged, true, false },

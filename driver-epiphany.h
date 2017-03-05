@@ -33,6 +33,8 @@
 #include <e-hal.h>
 #include <e-loader.h>
 
+extern void print_epi_ndevs(int *ndevs);
+
 #define _BufOffset (0x01000000)
 extern struct device_drv epiphany_drv;
 typedef struct _shared_buf_t {

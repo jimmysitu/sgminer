@@ -160,6 +160,7 @@ static struct profile *get_profile(char *name)
   return NULL;
 }
 
+#ifdef USE_OPENCL
 struct profile *get_gpu_profile(int gpuid)
 {
   struct profile *profile;
@@ -173,6 +174,7 @@ struct profile *get_gpu_profile(int gpuid)
 
   return profile;
 }
+#endif
 
 /******* Default profile functions used during config parsing *****/
 char *set_default_algorithm(const char *arg)
@@ -205,6 +207,7 @@ char *set_default_kernelfile(const char *arg)
   return NULL;
 }
 
+#ifdef USE_OPENCL
 char *set_default_lookup_gap(const char *arg)
 {
   default_profile.lookup_gap = arg;
@@ -236,44 +239,43 @@ char *set_default_thread_concurrency(const char *arg)
 }
 
 #ifdef HAVE_ADL
+char *set_default_gpu_engine(const char *arg)
+{
+  default_profile.gpu_engine = arg;
+  return NULL;
+}
 
-  char *set_default_gpu_engine(const char *arg)
-  {
-    default_profile.gpu_engine = arg;
-    return NULL;
-  }
+char *set_default_gpu_memclock(const char *arg)
+{
+  default_profile.gpu_memclock = arg;
+  return NULL;
+}
 
-  char *set_default_gpu_memclock(const char *arg)
-  {
-    default_profile.gpu_memclock = arg;
-    return NULL;
-  }
+char *set_default_gpu_threads(const char *arg)
+{
+  default_profile.gpu_threads = arg;
+  return NULL;
+}
 
-  char *set_default_gpu_threads(const char *arg)
-  {
-    default_profile.gpu_threads = arg;
-    return NULL;
-  }
+char *set_default_gpu_fan(const char *arg)
+{
+  default_profile.gpu_fan = arg;
+  return NULL;
+}
 
-  char *set_default_gpu_fan(const char *arg)
-  {
-    default_profile.gpu_fan = arg;
-    return NULL;
-  }
+char *set_default_gpu_powertune(const char *arg)
+{
+  default_profile.gpu_powertune = arg;
+  return NULL;
+}
 
-  char *set_default_gpu_powertune(const char *arg)
-  {
-    default_profile.gpu_powertune = arg;
-    return NULL;
-  }
-
-  char *set_default_gpu_vddc(const char *arg)
-  {
-    default_profile.gpu_vddc = arg;
-    return NULL;
-  }
-
+char *set_default_gpu_vddc(const char *arg)
+{
+  default_profile.gpu_vddc = arg;
+  return NULL;
+}
 #endif
+#endif //USE_OPENCL
 
 char *set_default_profile(char *arg)
 {
@@ -951,6 +953,7 @@ void apply_defaults()
   applog(LOG_DEBUG, "Default Devices = %s", default_profile.devices);
   set_devices((char *)default_profile.devices);
 
+#ifdef USE_OPENCL
   //set raw intensity first
   if (!empty_string(default_profile.rawintensity))
     set_rawintensity(default_profile.rawintensity);
@@ -992,6 +995,7 @@ void apply_defaults()
 
   if (!empty_string(default_profile.worksize))
     set_worksize((char *)default_profile.worksize);
+#endif
 }
 
 //apply profile settings to pools
@@ -2190,7 +2194,7 @@ void api_pool_profile(struct io_data *io_data, __maybe_unused SOCKETTYPE c, char
   message(io_data, MSG_CHPOOLPR, pool->pool_no, profile->name, isjson);
 }
 
-
+#ifdef USE_OPENCL
 void update_config_intensity(struct profile *profile)
 {
   char buf[256] = { 0 };
@@ -2236,7 +2240,9 @@ void update_config_intensity(struct profile *profile)
     }
   }
 }
+#endif
 
+#ifdef USE_OPENCL
 void update_config_xintensity(struct profile *profile)
 {
   int i;
@@ -2278,7 +2284,9 @@ void update_config_xintensity(struct profile *profile)
     }
   }
 }
+#endif
 
+#ifdef USE_OPENCL
 void update_config_rawintensity(struct profile *profile)
 {
   int i;
@@ -2320,4 +2328,5 @@ void update_config_rawintensity(struct profile *profile)
     default_profile.rawintensity = strdup((const char *)buf);
   }
 }
+#endif
 

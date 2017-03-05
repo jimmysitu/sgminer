@@ -176,6 +176,10 @@ double opt_diff_mult = 0.0;
 char *opt_kernel_path;
 char *sgminer_path;
 
+#ifdef USE_OPENCL
+bool opt_opencl = false;
+#endif
+
 #ifdef USE_EPIPHANY
 bool opt_epiphany = false;
 #endif
@@ -1434,6 +1438,7 @@ struct opt_table opt_config_table[] = {
   OPT_WITHOUT_ARG("--fix-protocol",
       opt_set_bool, &opt_fix_protocol,
       "Do not redirect to a different getwork protocol (eg. stratum)"),
+#ifdef USE_OPENCL
   OPT_WITH_ARG("--gpu-dyninterval",
       set_int_1_to_65535, opt_show_intval, &opt_dynamic_interval,
       "Set the refresh interval in ms for GPUs using dynamic intensity"),
@@ -1474,6 +1479,7 @@ struct opt_table opt_config_table[] = {
       set_default_gpu_vddc, NULL, NULL,
       "Set the GPU voltage in Volts - one value for all or separate by commas for per card"),
 #endif
+#endif
   OPT_WITH_ARG("--hamsi-expand-big",
       set_int_1_to_10, opt_show_intval, &opt_hamsi_expand_big,
       "Set SPH_HAMSI_EXPAND_BIG for X13 derived algorithms (1 or 4 are common)"),
@@ -1486,9 +1492,6 @@ struct opt_table opt_config_table[] = {
   OPT_WITH_ARG("--kernelfile",
          set_default_kernelfile, NULL, NULL,
          "Set the algorithm kernel source file (without file extension)."),
-  OPT_WITH_ARG("--lookup-gap",
-      set_default_lookup_gap, NULL, NULL,
-      "Set GPU lookup gap for scrypt mining, comma separated"),
   OPT_WITHOUT_ARG("--luffa-parallel",
       opt_set_bool, &opt_luffa_parallel,
       "Set SPH_LUFFA_PARALLEL for Xn derived algorithms (Can give better hashrate for some GPUs)"),
@@ -1500,6 +1503,10 @@ struct opt_table opt_config_table[] = {
   OPT_WITHOUT_ARG("--more-notices",
       opt_set_bool, &opt_morenotices,
       "Shows work restart and new block notices, hidden by default"),
+#ifdef USE_OPENCL
+  OPT_WITH_ARG("--lookup-gap",
+      set_default_lookup_gap, NULL, NULL,
+      "Set GPU lookup gap for scrypt mining, comma separated"),
   OPT_WITH_ARG("--intensity|-I",
       set_default_intensity, NULL, NULL,
       "Intensity of GPU scanning (d or " MIN_INTENSITY_STR
@@ -1513,6 +1520,7 @@ struct opt_table opt_config_table[] = {
       set_default_rawintensity, NULL, NULL,
       "Raw intensity of GPU scanning (" MIN_RAWINTENSITY_STR " to "
         MAX_RAWINTENSITY_STR "), overrides --intensity|-I and --xintensity|-X."),
+#endif
   OPT_WITH_ARG("--kernel-path|-K",
       opt_set_charp, opt_show_charp, &opt_kernel_path,
       "Specify a path to where kernel files are"),
@@ -1796,20 +1804,22 @@ struct opt_table opt_config_table[] = {
       opt_set_invbool, &use_curses,
       opt_hidden),
 #endif
-  OPT_WITH_ARG("--thread-concurrency",
-      set_default_thread_concurrency, NULL, NULL,
-      "Set GPU thread concurrency for scrypt mining, comma separated"),
   OPT_WITH_ARG("--url|--pool-url|-o",
       set_url, NULL, NULL,
       "URL for bitcoin JSON-RPC server"),
   OPT_WITH_ARG("--user|--pool-user|-u",
       set_user, NULL, NULL,
       "Username for bitcoin JSON-RPC server"),
+#ifdef USE_OPENCL
+  OPT_WITH_ARG("--thread-concurrency",
+      set_default_thread_concurrency, NULL, NULL,
+      "Set GPU thread concurrency for scrypt mining, comma separated"),
   OPT_WITH_ARG("--vectors",
       set_vector, NULL, NULL,
       opt_hidden),
       /* All current kernels only support vectors=1 */
       /* "Override detected optimal vector (1, 2 or 4) - one value or comma separated list"), */
+#endif
   OPT_WITHOUT_ARG("--verbose|-v",
       opt_set_bool, &opt_verbose,
       "Log verbose output to stderr as well as status output"),
@@ -1839,6 +1849,11 @@ struct opt_table opt_config_table[] = {
   OPT_WITH_ARG("--difficulty-multiplier",
       set_difficulty_multiplier, NULL, NULL,
       "(deprecated) Difficulty multiplier for jobs received from stratum pools"),
+#ifdef USE_OPENCL
+  OPT_WITHOUT_ARG("--opencl",
+      opt_set_bool, &opt_opencl,
+      "Enable mining with Epiphany"),
+#endif
 #ifdef USE_EPIPHANY
   OPT_WITHOUT_ARG("--epiphany",
       opt_set_bool, &opt_epiphany,
@@ -2417,7 +2432,9 @@ static int devcursor, logstart, logcursor;
 static int statusy;
 #endif
 
+#ifdef USE_OPENCL
 extern struct cgpu_info gpus[MAX_GPUDEVICES]; /* Maximum number apparently possible */
+#endif
 
 #ifdef HAVE_CURSES
 static inline void unlock_curses(void)
@@ -5095,8 +5112,10 @@ static void *input_thread(void __maybe_unused *userdata)
       display_pools();
     else if (!strncasecmp(&input, "s", 1))
       set_options();
+#ifdef USE_OPENCL
     else if (!strncasecmp(&input, "g", 1))
       manage_gpu();
+#endif
     if (opt_realquiet) {
       disable_curses();
       break;
@@ -6340,110 +6359,19 @@ static void apply_initial_gpu_settings(struct pool *pool)
   rd_lock(&mining_thr_lock);
 
   apply_switcher_options(options, pool);
-
-/*
-  //reset devices
-  opt_devs_enabled = 0;
-  for (i = 0; i < MAX_DEVICES; i++)
-      devices_enabled[i] = false;
-
-  //assign pool devices if any
-  if(!empty_string((opt = get_pool_setting(pool->devices, ((!empty_string(default_profile.devices))?default_profile.devices:"all"))))) {
-    set_devices((char *)opt);
-  }
-
-  //lookup gap
-  if(!empty_string((opt = get_pool_setting(pool->lookup_gap, default_profile.lookup_gap))))
-    set_lookup_gap((char *)opt);
-
-  //set intensity
-  if(!empty_string((opt = get_pool_setting(pool->rawintensity, default_profile.rawintensity)))) {
-      set_rawintensity((char *)opt);
-  }
-  else if(!empty_string((opt = get_pool_setting(pool->xintensity, default_profile.xintensity)))) {
-    set_xintensity((char *)opt);
-  }
-  else if(!empty_string((opt = get_pool_setting(pool->intensity, ((!empty_string(default_profile.intensity))?default_profile.intensity:"8"))))) {
-    set_intensity((char *)opt);
-  }
-
-  //shaders
-  if(!empty_string((opt = get_pool_setting(pool->shaders, default_profile.shaders))))
-    set_shaders((char *)opt);
-
-  //thread-concurrency
-  // neoscrypt - if not specified set TC to 0 so that TC will be calculated by intensity settings
-  if (pool->algorithm.type == ALGO_NEOSCRYPT) {
-    opt = ((empty_string(pool->thread_concurrency))?"0":get_pool_setting(pool->thread_concurrency, default_profile.thread_concurrency));
-  }
-  // otherwise use pool/profile setting or default to default profile setting
-  else {
-    opt = get_pool_setting(pool->thread_concurrency, default_profile.thread_concurrency);
-  }
-
-  if (!empty_string(opt)) {
-    set_thread_concurrency(opt);
-  }
-
-  //worksize
-  if(!empty_string((opt = get_pool_setting(pool->worksize, default_profile.worksize))))
-    set_worksize(opt);
-*/
+  
   //manually apply algorithm
   for (i = 0; i < nDevs; i++)
   {
+#ifdef USE_OPENCL
     applog(LOG_DEBUG, "Set GPU %d to %s", i, isnull(pool->algorithm.name, ""));
     gpus[i].algorithm = pool->algorithm;
+#endif
+#ifdef USE_EPIPHANY
+    applog(LOG_DEBUG, "Set EPI %d to %s", i, isnull(pool->algorithm.name, ""));
+    epis[i].algorithm = pool->algorithm;
+#endif
   }
-/*
-  #ifdef HAVE_ADL
-    options = APPLY_ENGINE | APPLY_MEMCLOCK | APPLY_FANSPEED | APPLY_POWERTUNE | APPLY_VDDC;
-
-    //GPU clock
-    if(!empty_string((opt = get_pool_setting(pool->gpu_engine, default_profile.gpu_engine))))
-      set_gpu_engine((char *)opt);
-    else
-      options ^= APPLY_ENGINE;
-
-    //GPU memory clock
-    if(!empty_string((opt = get_pool_setting(pool->gpu_memclock, default_profile.gpu_memclock))))
-      set_gpu_memclock((char *)opt);
-    else
-      options ^= APPLY_MEMCLOCK;
-
-    //GPU fans
-    if(!empty_string((opt = get_pool_setting(pool->gpu_fan, default_profile.gpu_fan))))
-      set_gpu_fan((char *)opt);
-    else
-      options ^= APPLY_FANSPEED;
-
-    //GPU powertune
-    if(!empty_string((opt = get_pool_setting(pool->gpu_powertune, default_profile.gpu_powertune))))
-      set_gpu_powertune((char *)opt);
-    else
-      options ^= APPLY_POWERTUNE;
-
-    //GPU vddc
-    if(!empty_string((opt = get_pool_setting(pool->gpu_vddc, default_profile.gpu_vddc))))
-      set_gpu_vddc((char *)opt);
-    else
-      options ^= APPLY_VDDC;
-
-    //apply gpu settings
-    for (i = 0; i < nDevs; i++)
-    {
-      if(opt_isset(options, APPLY_ENGINE))
-        set_engineclock(i, gpus[i].min_engine);
-      if(opt_isset(options, APPLY_MEMCLOCK))
-        set_memoryclock(i, gpus[i].gpu_memclock);
-      if(opt_isset(options, APPLY_FANSPEED))
-        set_fanspeed(i, gpus[i].min_fan);
-      if(opt_isset(options, APPLY_POWERTUNE))
-        set_powertune(i, gpus[i].gpu_powertune);
-      if(opt_isset(options, APPLY_VDDC))
-        set_vddc(i, gpus[i].gpu_vddc);
-    }
-  #endif*/
 
   rd_unlock(&mining_thr_lock);
 
@@ -6648,6 +6576,7 @@ static void apply_switcher_options(unsigned long options, struct pool *pool)
     }
   }
 
+#ifdef USE_OPENCL
   //lookup gap
   if(opt_isset(options, SWITCHER_APPLY_LG))
   {
@@ -6716,8 +6645,9 @@ static void apply_switcher_options(unsigned long options, struct pool *pool)
     if(!empty_string((opt = get_pool_setting(pool->worksize, default_profile.worksize))))
       set_worksize(opt);
   }
+#endif
 
-  #ifdef HAVE_ADL
+#ifdef HAVE_ADL
     //GPU clock
     if(opt_isset(options, SWITCHER_APPLY_GPU_ENGINE))
     {
@@ -6766,7 +6696,7 @@ static void apply_switcher_options(unsigned long options, struct pool *pool)
       if(opt_isset(options, SWITCHER_APPLY_GPU_VDDC))
         set_vddc(i, gpus[i].gpu_vddc);
     }
-  #endif
+#endif
 }
 
 static void mutex_unlock_cleanup_handler(void *mutex)
@@ -8887,9 +8817,17 @@ int main(int argc, char *argv[])
 
   INIT_LIST_HEAD(&scan_devices);
 
+#ifdef USE_OPENCL
   memset(gpus, 0, sizeof(gpus));
   for (i = 0; i < MAX_GPUDEVICES; i++)
     gpus[i].dynamic = true;
+#endif
+
+#ifdef USE_EPIPHANY
+  memset(epis, 0, sizeof(epis));
+  for (i = 0; i < MAX_EPIDEVICES; i++)
+    epis[i].dynamic = true;
+#endif
 
   /* parse config and command line */
   opt_register_table(opt_config_table,
@@ -8946,18 +8884,22 @@ int main(int argc, char *argv[])
 
   gwsched_thr_id = 0;
 
-  //Detect GPUs
+  //Detect GPUs and EPIs
   /* Use the DRIVER_PARSE_COMMANDS macro to fill all the device_drvs */
   DRIVER_PARSE_COMMANDS(DRIVER_FILL_DEVICE_DRV)
 
   // this will set total_devices
-  // FIXME: Jimmy, I need add an opt_opencl here
-  opencl_drv.drv_detect();
+#ifdef USE_OPENCL
+  if (opt_opencl) {
+    opencl_drv.drv_detect();
+  }
+#endif
 #ifdef USE_EPIPHANY
 	if (opt_epiphany) {
 		epiphany_drv.drv_detect();
 	}
 #endif
+
   if (opt_display_devs) {
     applog(LOG_ERR, "Devices detected:");
     for (i = 0; i < total_devices; ++i) {
@@ -9164,20 +9106,18 @@ int main(int argc, char *argv[])
     quit(1, "watchdog thread create failed");
   pthread_detach(thr->pth);
 
-  // FIXME, Jimmy, Need special mask, no need for other platform except opencl
-  // mask with USE_OPENCL and opt_opencl
   /* Create reinit gpu thread */
-  // FIXME, ifdef USE_OPENCL
-  // FIXME, if (opt_opencl){
-  gpur_thr_id = 4;
-  thr = &control_thr[gpur_thr_id];
-  thr->q = tq_new();
-  if (!thr->q)
-    quit(1, "tq_new failed for gpur_thr_id");
-  if (thr_info_create(thr, NULL, reinit_gpu, thr))
-    quit(1, "reinit_gpu thread create failed");
-  // FIXME, }
-  // FIXME, endif
+#ifdef USE_OPENCL
+  if (opt_opencl){
+    gpur_thr_id = 4;
+    thr = &control_thr[gpur_thr_id];
+    thr->q = tq_new();
+    if (!thr->q)
+      quit(1, "tq_new failed for gpur_thr_id");
+    if (thr_info_create(thr, NULL, reinit_gpu, thr))
+      quit(1, "reinit_gpu thread create failed");
+  }
+#endif
 
   /* Create API socket thread */
   api_thr_id = 5;

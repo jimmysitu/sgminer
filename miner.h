@@ -1211,6 +1211,7 @@ extern void adjust_quota_gcd(void);
 extern struct pool *add_pool(void);
 extern bool add_pool_details(struct pool *pool, bool live, char *url, char *user, char *pass, char *name, char *desc, char *profile, char *algo);
 
+#define MAX_EPIDEVICES 1
 #define MAX_GPUDEVICES 16
 #define MAX_DEVICES 4096
 
@@ -1234,7 +1235,15 @@ extern bool use_syslog;
 extern bool opt_quiet;
 extern struct thr_info *control_thr;
 extern struct thr_info **mining_thr;
+
+#ifdef USE_OPENCL
 extern struct cgpu_info gpus[MAX_GPUDEVICES];
+#endif
+
+#ifdef USE_EPIPHANY
+extern struct cgpu_info epis[MAX_EPIDEVICES];
+#endif
+
 extern double total_secs;
 extern int mining_threads;
 extern int total_devices;

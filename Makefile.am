@@ -88,7 +88,7 @@ sgminer_SOURCES 	+= ocl/binary_kernel.c ocl/binary_kernel.h
 sgminer_SOURCES 	+= kernel/*.cl
 sgminer_LDADD 		+= @OPENCL_LIBS@ 
 sgminer_CPPFLAGS 	+= @OPENCL_FLAGS@ 
-endif
+endif # HAS_OPENCL
 
 if HAS_EPIPHANY
 sgminer_SOURCES 	+= driver-epiphany.h driver-epiphany.c

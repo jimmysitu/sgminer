@@ -4,7 +4,7 @@
 #include "miner.h"
 
 
-extern void print_ndevs(int *ndevs);
+extern void print_ocl_ndevs(int *ndevs);
 extern void *reinit_gpu(void *userdata);
 extern char *set_gpu_map(char *arg);
 extern char *set_gpu_threads(const char *arg);

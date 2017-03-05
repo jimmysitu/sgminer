@@ -222,7 +222,7 @@ AC_ARG_ENABLE([epiphany],
 if test "x$opencl" != xno; then
   if test "$found_opencl" = 1; then
     has_opencl=true
-	  AC_DEFINE([USE_EPIPHANY], [1], [Defined if OpenCL headers were found ])
+	  AC_DEFINE([USE_OPENCL], [1], [Defined if OpenCL headers were found ])
     if test "x$adl" != xno; then
       dnl FIXME: force ADL usage if disable-checks specified
       if test "x$adl_checks" = xno; then

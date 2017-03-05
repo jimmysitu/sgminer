@@ -9,12 +9,17 @@
 
 #include "driver-epiphany.h"
 
-#ifdef USE_EPIPHANY
 
 /* TODO: cleanup externals ********************/
 extern void submit_work_async(struct work *work_in, struct timeval *tv_work_found);
 extern int dev_from_id(int thr_id);
 
+void print_ndevs(int *ndevs)
+{
+  opt_verbose = true;
+  epiphany_drv.drv_detect();
+  applog(LOG_INFO, "%i GPU devices max detected", *ndevs);
+}
 
 
 static void epiphany_detect()
@@ -177,7 +182,6 @@ struct device_drv epiphany_drv = {
 };
 
 
-#endif
 
 
 

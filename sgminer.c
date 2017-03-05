@@ -1862,7 +1862,12 @@ static char *opt_verusage_and_exit(const char *extra)
 char *display_devs(int *ndevs)
 {
   *ndevs = 0;
+#ifdef USE_OPENCL
   print_ndevs(ndevs);
+#endif
+#ifdef USE_EPIPHANY
+  print_ndevs(ndevs);
+#endif
   exit(*ndevs);
 }
 
@@ -1890,8 +1895,14 @@ static struct opt_table opt_cmdline_table[] = {
       "Print this message"),
   OPT_WITHOUT_ARG("--ndevs|-n",
       display_devs, &nDevs,
-      "Display number of detected GPUs, OpenCL platform "
-      "information, and exit"),
+      "Display "
+#ifdef USE_OPENCL
+      "number of detected GPUs, OpenCL platform information, "
+#endif
+#ifdef USE_EPIPHANY
+      "number of detected EPI, Epiphany platform information, "
+#endif
+      "and exit"),
   OPT_WITHOUT_ARG("--version|-V",
       opt_version_and_exit, packagename,
       "Display version and exit"),

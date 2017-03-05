@@ -15,10 +15,10 @@ bin_PROGRAMS     = sgminer
 sgminer_CPPFLAGS = $(PTHREAD_FLAGS) -std=gnu99 $(JANSSON_CPPFLAGS)
 sgminer_LDFLAGS  = $(PTHREAD_FLAGS)
 sgminer_LDADD    = $(DLOPEN_FLAGS) @LIBCURL_LIBS@ @JANSSON_LIBS@ @PTHREAD_LIBS@ \
-		  @OPENCL_LIBS@ @NCURSES_LIBS@ @PDCURSES_LIBS@ @WS2_LIBS@ \
+		  @NCURSES_LIBS@ @PDCURSES_LIBS@ @WS2_LIBS@ \
 		  @MM_LIBS@ @RT_LIBS@ @MATH_LIBS@ lib/libgnu.a ccan/libccan.a sph/libsph.a
 
-sgminer_CPPFLAGS += -I$(top_builddir)/lib -I$(top_srcdir)/lib @OPENCL_FLAGS@ @LIBCURL_CFLAGS@
+sgminer_CPPFLAGS += -I$(top_builddir)/lib -I$(top_srcdir)/lib @LIBCURL_CFLAGS@
 
 if HAVE_WINDOWS
 sgminer_LDFLAGS += -all-static
@@ -80,13 +80,15 @@ sgminer_SOURCES += algorithm/lbry.c algorithm/lbry.h
 
 bin_SCRIPTS	= $(top_srcdir)/kernel/*.cl
 
-#FIXME, if HAS_OPENCL
-sgminer_SOURCES += driver-opencl.c driver-opencl.h
-sgminer_SOURCES += ocl.c ocl.h
-sgminer_SOURCES += ocl/build_kernel.c ocl/build_kernel.h
-sgminer_SOURCES += ocl/binary_kernel.c ocl/binary_kernel.h
-sgminer_SOURCES += kernel/*.cl
-#FIXME, endif
+if HAS_OPENCL
+sgminer_SOURCES 	+= driver-opencl.c driver-opencl.h
+sgminer_SOURCES 	+= ocl.c ocl.h
+sgminer_SOURCES 	+= ocl/build_kernel.c ocl/build_kernel.h
+sgminer_SOURCES 	+= ocl/binary_kernel.c ocl/binary_kernel.h
+sgminer_SOURCES 	+= kernel/*.cl
+sgminer_LDADD 		+= @OPENCL_LIBS@ 
+sgminer_CPPFLAGS 	+= @OPENCL_FLAGS@ 
+endif
 
 if HAS_EPIPHANY
 sgminer_SOURCES 	+= driver-epiphany.h driver-epiphany.c

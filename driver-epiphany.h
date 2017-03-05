@@ -30,12 +30,9 @@
 	#include <fcntl.h>
 #endif
 
-#ifdef USE_EPIPHANY
-  #include <e-hal.h>
-  #include <e-loader.h>
-#endif
+#include <e-hal.h>
+#include <e-loader.h>
 
-#ifdef USE_EPIPHANY
 #define _BufOffset (0x01000000)
 extern struct device_drv epiphany_drv;
 typedef struct _shared_buf_t {
@@ -46,6 +43,5 @@ typedef struct _shared_buf_t {
 	volatile uint8_t found;         // Nonce found flag, set by device
 } shared_buf_t;
 
-#endif
 
 #endif /* __DEVICE_EPI_H__ */

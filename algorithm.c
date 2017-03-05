@@ -9,10 +9,11 @@
 
 #include "algorithm.h"
 #include "sph/sph_sha2.h"
-// FIXME, ifdef USE_OPENCL
-#include "ocl.h"
-#include "ocl/build_kernel.h"
-// FIXME, endif
+
+#ifdef USE_OPENCL
+  #include "ocl.h"
+  #include "ocl/build_kernel.h"
+#endif
 
 #include "algorithm/scrypt.h"
 #include "algorithm/animecoin.h"
@@ -115,16 +116,18 @@ void sha256d_midstate(struct work *work)
   endian_flip32(work->midstate, work->midstate);
 }
 
-// FIXME, ifdef USE_OPENCL
-#define CL_SET_BLKARG(blkvar) status |= clSetKernelArg(*kernel, num++, sizeof(uint), (void *)&blk->blkvar)
-#define CL_SET_VARG(args, var) status |= clSetKernelArg(*kernel, num++, args * sizeof(uint), (void *)var)
-#define CL_SET_ARG_N(n, var) do { status |= clSetKernelArg(*kernel, n, sizeof(var), (void *)&var); } while (0)
-#define CL_SET_ARG_0(var) CL_SET_ARG_N(0, var)
-#define CL_SET_ARG(var) CL_SET_ARG_N(num++, var)
-#define CL_NEXTKERNEL_SET_ARG_N(n, var) do { kernel++; CL_SET_ARG_N(n, var); } while (0)
-#define CL_NEXTKERNEL_SET_ARG_0(var) CL_NEXTKERNEL_SET_ARG_N(0, var)
-#define CL_NEXTKERNEL_SET_ARG(var) CL_NEXTKERNEL_SET_ARG_N(num++, var)
+#ifdef USE_OPENCL
+  #define CL_SET_BLKARG(blkvar) status |= clSetKernelArg(*kernel, num++, sizeof(uint), (void *)&blk->blkvar)
+  #define CL_SET_VARG(args, var) status |= clSetKernelArg(*kernel, num++, args * sizeof(uint), (void *)var)
+  #define CL_SET_ARG_N(n, var) do { status |= clSetKernelArg(*kernel, n, sizeof(var), (void *)&var); } while (0)
+  #define CL_SET_ARG_0(var) CL_SET_ARG_N(0, var)
+  #define CL_SET_ARG(var) CL_SET_ARG_N(num++, var)
+  #define CL_NEXTKERNEL_SET_ARG_N(n, var) do { kernel++; CL_SET_ARG_N(n, var); } while (0)
+  #define CL_NEXTKERNEL_SET_ARG_0(var) CL_NEXTKERNEL_SET_ARG_N(0, var)
+  #define CL_NEXTKERNEL_SET_ARG(var) CL_NEXTKERNEL_SET_ARG_N(num++, var)
+#endif
 
+#ifdef USE_OPENCL
 static void append_scrypt_compiler_options(struct _build_kernel_data *data, struct cgpu_info *cgpu, struct _algorithm_t *algorithm)
 {
   char buf[255];
@@ -135,7 +138,14 @@ static void append_scrypt_compiler_options(struct _build_kernel_data *data, stru
   sprintf(buf, "lg%utc%unf%u", cgpu->lookup_gap, (unsigned int)cgpu->thread_concurrency, algorithm->nfactor);
   strcat(data->binary_filename, buf);
 }
+#else
+static void append_scrypt_compiler_options(struct _build_kernel_data *data, struct cgpu_info *cgpu, struct _algorithm_t *algorithm)
+{
+  //Do not thing here
+}
+#endif
 
+#ifdef USE_OPENCL
 static void append_neoscrypt_compiler_options(struct _build_kernel_data *data, struct cgpu_info *cgpu, struct _algorithm_t *algorithm)
 {
   char buf[255];
@@ -146,7 +156,14 @@ static void append_neoscrypt_compiler_options(struct _build_kernel_data *data, s
   sprintf(buf, "%stc%lu", ((cgpu->lookup_gap > 0) ? "lg" : ""), (unsigned long)cgpu->thread_concurrency);
   strcat(data->binary_filename, buf);
 }
+#else
+static void append_neoscrypt_compiler_options(struct _build_kernel_data *data, struct cgpu_info *cgpu, struct _algorithm_t *algorithm)
+{
+  //Do not thing here
+}
+#endif
 
+#ifdef USE_OPENCL
 static void append_blake256_compiler_options(struct _build_kernel_data *data, struct cgpu_info *cgpu, struct _algorithm_t *algorithm)
 {
   char buf[255];
@@ -157,7 +174,14 @@ static void append_blake256_compiler_options(struct _build_kernel_data *data, st
   sprintf(buf, "tc%lu", (unsigned long)cgpu->thread_concurrency);
   strcat(data->binary_filename, buf);
 }
+#else
+static void append_blake256_compiler_options(struct _build_kernel_data *data, struct cgpu_info *cgpu, struct _algorithm_t *algorithm)
+{
+  //Do not thing here
+}
+#endif
 
+#ifdef USE_OPENCL
 static void append_x11_compiler_options(struct _build_kernel_data *data, struct cgpu_info *cgpu, struct _algorithm_t *algorithm)
 {
   char buf[255];
@@ -168,8 +192,14 @@ static void append_x11_compiler_options(struct _build_kernel_data *data, struct 
   sprintf(buf, "ku%u%s%s", (unsigned int)opt_keccak_unroll, ((opt_blake_compact) ? "bc" : ""), ((opt_luffa_parallel) ? "lp" : ""));
   strcat(data->binary_filename, buf);
 }
+#else
+static void append_x11_compiler_options(struct _build_kernel_data *data, struct cgpu_info *cgpu, struct _algorithm_t *algorithm)
+{
+  //Do not thing here
+}
+#endif
 
-
+#ifdef USE_OPENCL
 static void append_x13_compiler_options(struct _build_kernel_data *data, struct cgpu_info *cgpu, struct _algorithm_t *algorithm)
 {
   char buf[255];
@@ -183,7 +213,9 @@ static void append_x13_compiler_options(struct _build_kernel_data *data, struct 
   sprintf(buf, "big%u%s", (unsigned int)opt_hamsi_expand_big, ((opt_hamsi_short) ? "hs" : ""));
   strcat(data->binary_filename, buf);
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_scrypt_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   unsigned char *midstate = blk->work->midstate;
@@ -205,7 +237,9 @@ static cl_int queue_scrypt_kernel(struct __clState *clState, struct _dev_blk_ctx
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_neoscrypt_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel = &clState->kernel;
@@ -228,7 +262,9 @@ static cl_int queue_neoscrypt_kernel(_clState *clState, dev_blk_ctx *blk, __mayb
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_credits_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel = &clState->kernel;
@@ -253,7 +289,9 @@ static cl_int queue_credits_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_yescrypt_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel = &clState->kernel;
@@ -280,7 +318,9 @@ static cl_int queue_yescrypt_kernel(_clState *clState, dev_blk_ctx *blk, __maybe
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_yescrypt_multikernel(_clState *clState, dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
 //  cl_kernel *kernel = &clState->kernel;
@@ -347,7 +387,9 @@ static cl_int queue_yescrypt_multikernel(_clState *clState, dev_blk_ctx *blk, __
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_maxcoin_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel = &clState->kernel;
@@ -362,7 +404,9 @@ static cl_int queue_maxcoin_kernel(struct __clState *clState, struct _dev_blk_ct
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_sph_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel = &clState->kernel;
@@ -380,7 +424,9 @@ static cl_int queue_sph_kernel(struct __clState *clState, struct _dev_blk_ctx *b
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_darkcoin_mod_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel;
@@ -424,7 +470,9 @@ static cl_int queue_darkcoin_mod_kernel(struct __clState *clState, struct _dev_b
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_bitblock_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel;
@@ -476,7 +524,9 @@ static cl_int queue_bitblock_kernel(struct __clState *clState, struct _dev_blk_c
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_bitblockold_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel;
@@ -520,8 +570,9 @@ static cl_int queue_bitblockold_kernel(struct __clState *clState, struct _dev_bl
 
   return status;
 }
+#endif
 
-
+#ifdef USE_OPENCL
 static cl_int queue_marucoin_mod_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel;
@@ -569,7 +620,9 @@ static cl_int queue_marucoin_mod_kernel(struct __clState *clState, struct _dev_b
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_marucoin_mod_old_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel;
@@ -613,7 +666,9 @@ static cl_int queue_marucoin_mod_old_kernel(struct __clState *clState, struct _d
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_talkcoin_mod_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel;
@@ -645,7 +700,9 @@ static cl_int queue_talkcoin_mod_kernel(struct __clState *clState, struct _dev_b
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_x14_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel;
@@ -695,7 +752,9 @@ static cl_int queue_x14_kernel(struct __clState *clState, struct _dev_blk_ctx *b
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_x14_old_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel;
@@ -739,7 +798,9 @@ static cl_int queue_x14_old_kernel(struct __clState *clState, struct _dev_blk_ct
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_fresh_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel;
@@ -771,7 +832,9 @@ static cl_int queue_fresh_kernel(struct __clState *clState, struct _dev_blk_ctx 
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_whirlcoin_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel;
@@ -799,7 +862,9 @@ static cl_int queue_whirlcoin_kernel(struct __clState *clState, struct _dev_blk_
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_whirlpoolx_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   uint64_t midblock[8], key[8] = { 0 }, tmp[8] = { 0 };
@@ -835,7 +900,9 @@ static cl_int queue_whirlpoolx_kernel(struct __clState *clState, struct _dev_blk
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_lyra2re_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel;
@@ -879,7 +946,9 @@ static cl_int queue_lyra2re_kernel(struct __clState *clState, struct _dev_blk_ct
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_lyra2rev2_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel;
@@ -933,7 +1002,9 @@ static cl_int queue_lyra2rev2_kernel(struct __clState *clState, struct _dev_blk_
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_pluck_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel = &clState->kernel;
@@ -952,7 +1023,9 @@ static cl_int queue_pluck_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_un
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_blake_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel = &clState->kernel;
@@ -980,7 +1053,9 @@ static cl_int queue_blake_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_un
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_decred_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel = &clState->kernel;
@@ -1013,7 +1088,9 @@ static cl_int queue_decred_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_u
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_sia_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel = &clState->kernel;
@@ -1034,7 +1111,9 @@ static cl_int queue_sia_kernel(struct __clState *clState, struct _dev_blk_ctx *b
 
   return status;
 }
+#endif
 
+#ifdef USE_OPENCL
 static cl_int queue_lbry_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel = &clState->kernel;
@@ -1059,8 +1138,9 @@ static cl_int queue_lbry_kernel(struct __clState *clState, struct _dev_blk_ctx *
 
   return status;
 }
+#endif
 
-
+#ifdef USE_OPENCL
 static algorithm_settings_t algos[] = {
   // kernels starting from this will have difficulty calculated by using litecoin algorithm
 #define A_SCRYPT(a) \
@@ -1164,7 +1244,16 @@ static algorithm_settings_t algos[] = {
   // Terminator (do not remove)
   { NULL, ALGO_UNK, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL }
 };
-// FIXME, endif
+#elif USE_EPIPHANY
+static algorithm_settings_t algos[] = {
+  { "sia",         ALGO_SIA,       "", 1, 1, 1, 0, 0, 0xFF, 0xFFFFULL, 0x0000FFFFUL, 0, 0, 0, sia_regenhash, NULL, NULL, NULL, sia_gen_hash, NULL },
+  { NULL, ALGO_UNK, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL }
+};
+#else
+static algorithm_settings_t algos[] = {
+  { NULL, ALGO_UNK, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL }
+};
+#endif
 
 void copy_algorithm_settings(algorithm_t* dest, const char* algo)
 {

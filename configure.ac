@@ -199,6 +199,10 @@ if test "x$has_pthread" != xtrue; then
 	fi
 fi
 
+AC_ARG_ENABLE([opencl],
+	[AC_HELP_STRING([--disable-opencl],[Override detection and disable building with opencl])],
+	[opencl=$enableval]
+	)
 
 AC_ARG_ENABLE([adl],
 	[AC_HELP_STRING([--disable-adl],[Override detection and disable building with ADL])],
@@ -215,43 +219,61 @@ AC_ARG_ENABLE([epiphany],
 	[epiphany=$enableval]
 	)
 
-if test "$found_opencl" = 1; then
-	if test "x$adl" != xno; then
-		dnl FIXME: force ADL usage if disable-checks specified
-		if test "x$adl_checks" = xno; then
-			have_adl=true
-			ADL_CPPFLAGS=-I$srcdir
-		fi
+if test "x$opencl" != xno; then
+  if test "$found_opencl" = 1; then
+    has_opencl=true
+	  AC_DEFINE([USE_EPIPHANY], [1], [Defined if OpenCL headers were found ])
+    if test "x$adl" != xno; then
+      dnl FIXME: force ADL usage if disable-checks specified
+      if test "x$adl_checks" = xno; then
+        have_adl=true
+        ADL_CPPFLAGS=-I$srcdir
+      fi
 
-		dnl Check if include files are in $srcdir/ADL_SDK
-		if test "x$have_adl" != xtrue; then
-			ADL_CPPFLAGS=
-			AC_CHECK_FILE([$srcdir/ADL_SDK/adl_sdk.h], [have_adl=true; ADL_CPPFLAGS=-I$srcdir], have_adl=false,)
-		fi
+      dnl Check if include files are in $srcdir/ADL_SDK
+      if test "x$have_adl" != xtrue; then
+        ADL_CPPFLAGS=
+        AC_CHECK_FILE([$srcdir/ADL_SDK/adl_sdk.h], [have_adl=true; ADL_CPPFLAGS=-I$srcdir], have_adl=false,)
+      fi
 
-		dnl FIXME: Check if SGMINER_SDK present
-		if test x$have_adl+$have_sgminer_sdk = xfalse+true; then
-			AC_CHECK_FILE([$SGMINER_SDK/include/ADL_SDK/adl_sdk.h], [have_adl=true; ADL_CPPFLAGS=-I$SGMINER_SDK/include], have_adl=false,)
-		fi
+      dnl FIXME: Check if SGMINER_SDK present
+      if test x$have_adl+$have_sgminer_sdk = xfalse+true; then
+        AC_CHECK_FILE([$SGMINER_SDK/include/ADL_SDK/adl_sdk.h], [have_adl=true; ADL_CPPFLAGS=-I$SGMINER_SDK/include], have_adl=false,)
+      fi
 
-		if test "x$have_adl" = xtrue
-		then
-			AC_DEFINE([HAVE_ADL], [1], [Defined if ADL headers were found])
-		else
-			DLOPEN_FLAGS=""
-		fi
-	fi
+      if test "x$have_adl" = xtrue; then
+        AC_DEFINE([HAVE_ADL], [1], [Defined if ADL headers were found])
+      else
+        DLOPEN_FLAGS=""
+      fi
+    fi
+  else
+    has_opencl=false
+    OPENCL_FLAG=""
+    OPENCL_LIBS=""
+    DLOPEN_FLAGS=""
+  fi
 else
+  has_opencl=false
+  OPENCL_FLAG=""
+  OPENCL_LIBS=""
 	DLOPEN_FLAGS=""
 fi
+AM_CONDITIONAL([HAS_OPENCL], [test x$has_opencl = xtrue])
 
-if test "$found_epiphany" = 1; then
-  if test "x$epiphany" != xno; then
+if test "x$epiphany" != xno; then
+  if test "$found_epiphany" = 1; then
     has_epiphany=true
 	  AC_DEFINE([USE_EPIPHANY], [1], [Defined if Epiphany headers were found ])
   else
     has_epiphany=false
+    EPIPHANY_FLAGS=""
+    EPIPHANY_LIBS=""
   fi
+else
+  has_epiphany=false
+  EPIPHANY_FLAGS=""
+  EPIPHANY_LIBS=""
 fi
 AM_CONDITIONAL([HAS_EPIPHANY], [test x$has_epiphany = xtrue])
 
@@ -448,11 +470,15 @@ fi
 
 echo "  curses.TUI...........: $cursesmsg"
 
-if test $found_opencl = 1; then
-	echo "  OpenCL...............: FOUND. GPU mining support enabled"
+if test x$opencl != xno; then
+  if test $found_opencl = 1; then
+	  echo "  OpenCL...............: FOUND. OpenCL mining support enabled"
+  else
+	  echo "  OpenCL...............: NOT FOUND. OpenCL mining support DISABLED"
+	  dnl AC_MSG_ERROR([OpenCL not found])
+  fi
 else
-	echo "  OpenCL...............: NOT FOUND. GPU mining support DISABLED"
-	dnl AC_MSG_ERROR([OpenCL not found])
+	  echo "  OpenCL...............: Detection overrided. OpenCL mining support DISABLED"
 fi
 
 if test x$epiphany != xno; then
@@ -485,7 +511,7 @@ echo "Compilation............: make (or gmake)"
 echo "  CPPFLAGS.............: $CPPFLAGS"
 echo "  CFLAGS...............: $CFLAGS"
 echo "  LDFLAGS..............: $LDFLAGS $PTHREAD_FLAGS"
-echo "  LDADD................: $DLOPEN_FLAGS $LIBCURL_LIBS $JANSSON_LIBS $PTHREAD_LIBS $OPENCL_LIBS $NCURSES_LIBS $PDCURSES_LIBS $WS2_LIBS $MATH_LIBS $RT_LIBS"
+echo "  LDADD................: $DLOPEN_FLAGS $LIBCURL_LIBS $JANSSON_LIBS $PTHREAD_LIBS $OPENCL_LIBS $EPIPHANY_LIBS $NCURSES_LIBS $PDCURSES_LIBS $WS2_LIBS $MATH_LIBS $RT_LIBS"
 echo
 echo "Installation...........: make install (as root if needed, with 'su' or 'sudo')"
 echo "  prefix...............: $prefix"

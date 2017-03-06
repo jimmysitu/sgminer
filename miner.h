@@ -568,6 +568,7 @@ struct cgpu_info {
   struct timeval tv_gpustart;
   int intervals;
 #endif
+
   algorithm_t algorithm;
 
   bool new_work;
@@ -590,6 +591,7 @@ struct cgpu_info {
 #endif
 
 #ifdef USE_EPIPHANY
+  int virtual_epi;
 	e_epiphany_t epiphany_dev;
 	e_mem_t epiphany_emem;
 	unsigned epiphany_rows;

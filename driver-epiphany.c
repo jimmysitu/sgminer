@@ -37,18 +37,21 @@ static void epiphany_detect()
 	if (e_get_platform_info(&platform) == E_ERR)
 		return;
 
-	struct cgpu_info *epiphany = malloc(sizeof(struct cgpu_info));
+	struct cgpu_info *epi = malloc(sizeof(struct cgpu_info));
 
-	if (unlikely(!epiphany))
+	if (unlikely(!epi))
 		quit(1, "Failed to malloc epiphany");
 
   nDevs = 1;    // Support only 1 epiphany for now
-	epiphany->drv = &epiphany_drv;
-	epiphany->deven = DEV_ENABLED;
-	epiphany->threads = 1;
-	epiphany->epiphany_rows = platform.rows;
-	epiphany->epiphany_cols = platform.cols;
-	add_cgpu(epiphany);
+	epi->drv = &epiphany_drv;
+	epi->deven = DEV_ENABLED;
+	epi->threads = 1;
+	epi->epiphany_rows = platform.rows;
+	epi->epiphany_cols = platform.cols;
+    
+  epi->virtual_epi = 0;
+  epi->algorithm = default_profile.algorithm;
+	add_cgpu(epi);
 
 }
 
@@ -57,10 +60,11 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
   struct timeval now;
   struct cgpu_info *cgpu = thr->cgpu;
 
-	e_epiphany_t *dev = &thr->cgpu->epiphany_dev;
-	e_mem_t *emem = &thr->cgpu->epiphany_emem;
-	unsigned rows = thr->cgpu->epiphany_rows;
-	unsigned cols = thr->cgpu->epiphany_cols;
+  int virtual_epi = cgpu->virtual_epi;
+	e_epiphany_t *dev = &cgpu->epiphany_dev;
+	e_mem_t *emem = &cgpu->epiphany_emem;
+	unsigned rows = cgpu->epiphany_rows;
+	unsigned cols = cgpu->epiphany_cols;
 
 	char *fullpath = alloca(PATH_MAX);
 	char filename[256];
@@ -77,7 +81,7 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
   
   // TODO: Jimmy, add compile flow here
 
-  sprintf(filename, "%s.srec", (!empty_string(cgpu->algorithm.kernelfile) ? cgpu->algorithm.kernelfile : cgpu->algorithm.name));
+  sprintf(filename, "%s.srec", (!empty_string(epis[virtual_epi]->algorithm.kernelfile) ? epis[virtual_epi]->algorithm.kernelfile : epis[virtual_epi]->algorithm.name));
   applog(LOG_DEBUG, "Using source file %s", filename);
 
 	strcpy(fullpath, sgminer_path);

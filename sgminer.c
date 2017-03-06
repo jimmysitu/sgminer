@@ -2655,7 +2655,11 @@ static void curses_print_status(void)
   mvwhline(statuswin, ++line, 0, '-', 80);
   mvwhline(statuswin, statusy - 1, 0, '-', 80);
 
+#ifdef USE_OPENCL
   cg_mvwprintw(statuswin, devcursor - 1, 0, "[P]ool management [G]PU management [S]ettings [D]isplay options [Q]uit");
+#else
+  cg_mvwprintw(statuswin, devcursor - 1, 0, "[P]ool management [S]ettings [D]isplay options [Q]uit");
+#endif
 }
 
 static void adj_width(int var, int *length)

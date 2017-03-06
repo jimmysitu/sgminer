@@ -548,7 +548,7 @@ struct cgpu_info {
   struct thr_info **thr;
 
   int64_t max_hashes;
-//FIXME, ifdef USE_OPENCL
+#ifdef USE_OPENCL
   bool mapped;
   int virtual_gpu;
   int virtual_adl;
@@ -567,7 +567,7 @@ struct cgpu_info {
   size_t shaders;
   struct timeval tv_gpustart;
   int intervals;
- // FIXME, endif
+#endif
   algorithm_t algorithm;
 
   bool new_work;

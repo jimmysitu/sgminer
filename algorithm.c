@@ -7,7 +7,7 @@
  * your option) any later version.  See COPYING for more details.
  */
 
-#include "config.h"
+#include "miner.h"
 #include "algorithm.h"
 #include "sph/sph_sha2.h"
 

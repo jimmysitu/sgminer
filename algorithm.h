@@ -1,8 +1,6 @@
 #ifndef ALGORITHM_H
 #define ALGORITHM_H
 
-#include "config.h"
-
 #ifdef __APPLE_CC__
 #include <OpenCL/opencl.h>
 #else

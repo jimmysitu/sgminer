@@ -112,7 +112,6 @@ static bool epiphany_thread_init(struct thr_info *thr)
 
   gpu->device_last_well = time(NULL);
 
-	
   return true;
 }
 
@@ -135,6 +134,9 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
 	bool rc;
 
   int64_t hashes = 100;
+
+  //TODO: Add real hash code here
+  
 	return hashes;
 }
 

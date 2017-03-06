@@ -235,7 +235,7 @@ cglock_t control_lock;
 pthread_mutex_t stats_lock;
 
 static void *restart_mining_threads_thread(void *userdata);
-static void apply_initial_gpu_settings(struct pool *pool);
+static void apply_initial_dev_settings(struct pool *pool);
 static unsigned long compare_pool_settings(struct pool *oldpool, struct pool *newpool);
 static void apply_switcher_options(unsigned long options, struct pool *pool);
 static void restart_mining_threads(unsigned int new_n_threads);
@@ -4248,13 +4248,13 @@ void __switch_pools(struct pool *selected, bool saveprio)
   //if startup, initialize gpus and start mining threads
   if(startup) {
     startup = false;  //remove startup flag so we don't enter this block again
-    applog(LOG_NOTICE, "Startup GPU initialization... Using settings from pool %s.", get_pool_name(pool));
+    applog(LOG_NOTICE, "Startup devices initialization... Using settings from pool %s.", get_pool_name(pool));
 
     //set initial pool number for restart_mining_threads to prevent mismatched GPU settings
     init_pool = pool->pool_no;
 
     //apply gpu settings based on first alive pool
-    apply_initial_gpu_settings(pool);
+    apply_initial_dev_settings(pool);
 
     gpu_initialized = true; //gpus initialized
   }
@@ -6343,7 +6343,7 @@ static void enable_devices(void)
   }
 }
 
-static void apply_initial_gpu_settings(struct pool *pool)
+static void apply_initial_dev_settings(struct pool *pool)
 {
   int i;
   const char *opt;
@@ -6355,7 +6355,7 @@ static void apply_initial_gpu_settings(struct pool *pool)
   //get compare options
   options = compare_pool_settings(NULL, pool);
 
-  //apply gpu settings
+  //apply dev settings
   rd_lock(&mining_thr_lock);
 
   apply_switcher_options(options, pool);
@@ -8962,10 +8962,12 @@ int main(int argc, char *argv[])
 #endif
   }
 
+#ifdef USE_OPENCL
   if (!getenv("GPU_MAX_ALLOC_PERCENT"))
     applog(LOG_WARNING, "WARNING: GPU_MAX_ALLOC_PERCENT is not specified!");
   if (!getenv("GPU_USE_SYNC_OBJECTS"))
     applog(LOG_WARNING, "WARNING: GPU_USE_SYNC_OBJECTS is not specified!");
+#endif
 
   if (!total_pools) {
     applog(LOG_WARNING, "Need to specify at least one pool server.");

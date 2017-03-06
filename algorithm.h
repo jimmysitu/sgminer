@@ -123,7 +123,11 @@ typedef struct _algorithm_settings_t
 	int   (*queue_kernel)();
 #endif
   void     (*gen_hash)(const unsigned char *, unsigned int, unsigned char *);
+#ifdef USE_OPENCL
 	void     (*set_compile_options)(build_kernel_data *, struct cgpu_info *, algorithm_t *);
+#else
+	void     (*set_compile_options)(struct cgpu_info *, algorithm_t *);
+#endif
 } algorithm_settings_t;
 
 /* Set default parameters based on name. */

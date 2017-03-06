@@ -7,6 +7,7 @@
  * any later version.  See COPYING for more details.
  */
 
+#include "config_parser.h"
 #include "driver-epiphany.h"
 
 
@@ -39,7 +40,7 @@ static void epiphany_detect()
 
 	struct cgpu_info *cgpu = malloc(sizeof(struct cgpu_info));
 
-	if (unlikely(!epi))
+	if (unlikely(!cgpu))
 		quit(1, "Failed to malloc epiphany");
 
   nDevs = 1;    // Support only 1 epiphany for now
@@ -51,7 +52,7 @@ static void epiphany_detect()
     
   cgpu->virtual_epi = 0;
   cgpu->algorithm = default_profile.algorithm;
-	add_cgpu(epi);
+	add_cgpu(cgpu);
 
 }
 

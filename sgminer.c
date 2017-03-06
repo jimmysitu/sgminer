@@ -8825,8 +8825,6 @@ int main(int argc, char *argv[])
 
 #ifdef USE_EPIPHANY
   memset(epis, 0, sizeof(epis));
-  for (i = 0; i < MAX_EPIDEVICES; i++)
-    epis[i].dynamic = true;
 #endif
 
   /* parse config and command line */

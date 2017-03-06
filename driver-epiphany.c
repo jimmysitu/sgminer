@@ -90,6 +90,7 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
   applog(LOG_DEBUG, "Using source file %s", filename);
 
 	strcpy(fullpath, sgminer_path);
+	strcat(fullpath, "/");
 	strcat(fullpath, filename);
 	FILE* checkf = fopen(fullpath, "r");
 	if (!checkf) {

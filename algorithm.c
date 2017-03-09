@@ -1091,7 +1091,7 @@ static cl_int queue_decred_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_u
 }
 #endif
 
-#if USE_OPENCL
+#ifdef USE_OPENCL
 static cl_int queue_sia_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel = &clState->kernel;
@@ -1266,13 +1266,11 @@ static algorithm_settings_t algos[] = {
   // Terminator (do not remove)
   { NULL, ALGO_UNK, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL }
 };
-#elif USE_EPIPHANY
+#endif
+
+#ifdef USE_EPIPHANY
 static algorithm_settings_t algos[] = {
   { "sia",         ALGO_SIA,       "", 1, 1, 1, 0, 0, 0xFF, 0xFFFFULL, 0x0000FFFFUL, 0, 0, 0, sia_regenhash, NULL, NULL, queue_sia_kernel, sia_gen_hash, NULL },
-  { NULL, ALGO_UNK, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL }
-};
-#else
-static algorithm_settings_t algos[] = {
   { NULL, ALGO_UNK, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL }
 };
 #endif

@@ -7,8 +7,12 @@
  * any later version.  See COPYING for more details.
  */
 
+#include "compat.h"
+#include "miner.h"
 #include "config_parser.h"
 #include "driver-epiphany.h"
+#include "findnonce.h"
+#include "util.h"
 
 
 /* TODO: cleanup externals ********************/

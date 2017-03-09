@@ -91,7 +91,7 @@ typedef struct _algorithm_t {
 #ifdef USE_OPENCL
   cl_int(*queue_kernel)(struct __clState *, struct _dev_blk_ctx *, cl_uint);
 #else
-  int(*queue_kernel)(struct _dev_blk_ctx *, unsigned, unsigned);
+  int(*queue_kernel)(e_epiphany_t *, struct _dev_blk_ctx *, unsigned, unsigned);
 #endif
 
   void(*gen_hash)(const unsigned char *, unsigned int, unsigned char *);
@@ -99,7 +99,7 @@ typedef struct _algorithm_t {
 #ifdef USE_OPENCL
   void(*set_compile_options)(struct _build_kernel_data *, struct cgpu_info *, struct _algorithm_t *);
 #else
-  void(*set_compile_options)(struct cgpu_info *, struct _algorithm_t *);
+  int(*queue_kernel)(e_epiphany_t *, struct _dev_blk_ctx *, unsigned, unsigned);
 #endif
 } algorithm_t;
 

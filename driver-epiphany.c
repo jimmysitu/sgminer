@@ -125,6 +125,7 @@ static bool epiphany_thread_init(struct thr_info *thr)
 {
   const int thr_id = thr->id;
   struct cgpu_info *cgpu = thr->cgpu;
+  struct epiphany_thread_data *thrdata;
   thrdata = (struct epiphany_thread_data *)calloc(1, sizeof(*thrdata));
   thr->cgpu_data = thrdata;
   int buffersize = BUFFERSIZE;

@@ -1306,7 +1306,9 @@ typedef struct _dev_blk_ctx {
   cl_uint zeroA, zeroB;
   cl_uint oneA, twoA, threeA, fourA, fiveA, sixA, sevenA;
 #endif
-
+#ifdef USE_EPIPHANY
+  uint nonce;
+#endif
   struct work *work;
 } dev_blk_ctx;
 

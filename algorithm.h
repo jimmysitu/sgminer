@@ -96,7 +96,9 @@ typedef struct _algorithm_t {
 
 #ifdef USE_OPENCL
   cl_int(*queue_kernel)(struct __clState *, struct _dev_blk_ctx *, cl_uint);
-#else
+#endif
+
+#ifdef USE_EPIPHANY
   int(*queue_kernel)(e_epiphany_t *, struct _dev_blk_ctx *, unsigned, unsigned);
 #endif
 
@@ -105,7 +107,7 @@ typedef struct _algorithm_t {
 #ifdef USE_OPENCL
   void(*set_compile_options)(struct _build_kernel_data *, struct cgpu_info *, struct _algorithm_t *);
 #else
-  int(*queue_kernel)(e_epiphany_t *, struct _dev_blk_ctx *, unsigned, unsigned);
+	void     (*set_compile_options)(struct cgpu_info *, algorithm_t *);
 #endif
 } algorithm_t;
 
@@ -137,8 +139,10 @@ typedef struct _algorithm_settings_t
 
 #ifdef USE_OPENCL
 	cl_int   (*queue_kernel)(struct __clState *, struct _dev_blk_ctx *, cl_uint);
-#else
-  int(*queue_kernel)(struct _dev_blk_ctx *, unsigned, unsigned);
+#endif
+
+#ifdef USE_EPIPHANY
+  int(*queue_kernel)(e_epiphany_t *, struct _dev_blk_ctx *, unsigned, unsigned);
 #endif
 
   void     (*gen_hash)(const unsigned char *, unsigned int, unsigned char *);

@@ -1,10 +1,16 @@
 #ifndef ALGORITHM_H
 #define ALGORITHM_H
 
-#ifdef __APPLE_CC__
-#include <OpenCL/opencl.h>
-#else
-#include <CL/cl.h>
+#ifdef USE_OPENCL
+  #ifdef __APPLE_CC__
+    #include <OpenCL/opencl.h>
+  #else
+    #include <CL/cl.h>
+  #endif
+#endif
+
+#ifdef USE_EPIPHANY
+  #include <e-hal.h>
 #endif
 
 #include <inttypes.h>
@@ -12,7 +18,7 @@
 
 
 #ifdef USE_OPENCL
-#include "ocl/build_kernel.h"   // For the build_kernel_data type
+  #include "ocl/build_kernel.h"   // For the build_kernel_data type
 #endif
 
 typedef enum {

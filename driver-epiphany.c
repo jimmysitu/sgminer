@@ -208,7 +208,7 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
         e_read(dev, i, j, 0x710E, &check, sizeof(uint8_t));   // check if done
         if(check){
           e_read(dev, i, j, 0x7108, &last_nonce, sizeof(uint8_t));    // get last nonce 
-          done = 1
+          done = 1;
         }
       }
     }

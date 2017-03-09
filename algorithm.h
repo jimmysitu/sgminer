@@ -107,7 +107,7 @@ typedef struct _algorithm_t {
 #ifdef USE_OPENCL
   void(*set_compile_options)(struct _build_kernel_data *, struct cgpu_info *, struct _algorithm_t *);
 #else
-	void     (*set_compile_options)(struct cgpu_info *, struct algorithm_t *);
+	void     (*set_compile_options)(struct cgpu_info *, struct _algorithm_t *);
 #endif
 } algorithm_t;
 
@@ -150,7 +150,7 @@ typedef struct _algorithm_settings_t
 #ifdef USE_OPENCL
 	void     (*set_compile_options)(build_kernel_data *, struct cgpu_info *, algorithm_t *);
 #else
-	void     (*set_compile_options)(struct cgpu_info *, struct algorithm_t *);
+	void     (*set_compile_options)(struct cgpu_info *, struct _algorithm_t *);
 #endif
 } algorithm_settings_t;
 

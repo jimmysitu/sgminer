@@ -30,7 +30,7 @@ struct cgpu_info epis[MAX_EPIDEVICES]; /* Maximum number apparently possible */
 struct cgpu_info *cpus;
 
 struct epiphany_thread_data {
-  int(*queue_kernel_parameters)(epiphany_dev *, dev_blk_ctx *);
+  int(*queue_kernel_parameters)(e_epiphany_t *, dev_blk_ctx *, unsigned, unsigned);
   uint32_t *res;
 };
 
@@ -185,7 +185,7 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
   }
   
   int i, j;
-  uint8_t start = 1
+  uint8_t start = 1;
   for(i = 0; i < rows; i++){
     for(j = 0; i < cols; i++){
       e_write(dev, i, j, 0x710C, &start, sizeof(uint8_t));          // start

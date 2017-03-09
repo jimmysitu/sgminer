@@ -181,7 +181,7 @@ static void *postcalc_hash(void *userdata)
   struct thr_info *thr = pcd->thr;
   unsigned int entry = 0;
 
-  int found = thr->cgpu->algorithm.found_idx;
+  uint32_t found = thr->cgpu->algorithm.found_idx;
 
   pthread_detach(pthread_self());
 

@@ -1091,7 +1091,7 @@ static cl_int queue_decred_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_u
 }
 #endif
 
-#ifdef USE_OPENCL
+#if USE_OPENCL
 static cl_int queue_sia_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
   cl_kernel *kernel = &clState->kernel;
@@ -1111,6 +1111,27 @@ static cl_int queue_sia_kernel(struct __clState *clState, struct _dev_blk_ctx *b
   CL_SET_ARG(clState->dbgBuffer);
 
   return status;
+}
+#endif
+
+#ifdef USE_EPIPHANY
+static int queue_sia_kernel(e_epiphany_t *dev, struct _dev_blk_ctx *blk, unsigned rows, unsigned cols)
+{
+  ulong le_target;
+  unsigned char data[80];
+  le_target = *(ulong *)(blk->work->device_target + 24);
+  flip80(data, blk->work->data);
+  uint8_t start = 0;
+  uint8_t found = 0;
+  int i, j;
+  for(i = 0; i < rows; i++){
+    for(j = 0; i < cols; i++){
+      e_write(dev, i, j, 0x7000, &data, 80*sizeof(unsigned char));  // data
+      e_write(dev, i, j, 0x7100, &le_target, sizeof(ulong));        // target
+      e_write(dev, i, j, 0x710C, &start, sizeof(uint8_t));          // start
+      e_write(dev, i, j, 0x710D, &found, sizeof(uint8_t));          // found
+    }
+  }
 }
 #endif
 
@@ -1247,7 +1268,7 @@ static algorithm_settings_t algos[] = {
 };
 #elif USE_EPIPHANY
 static algorithm_settings_t algos[] = {
-  { "sia",         ALGO_SIA,       "", 1, 1, 1, 0, 0, 0xFF, 0xFFFFULL, 0x0000FFFFUL, 0, 0, 0, sia_regenhash, NULL, NULL, NULL, sia_gen_hash, NULL },
+  { "sia",         ALGO_SIA,       "", 1, 1, 1, 0, 0, 0xFF, 0xFFFFULL, 0x0000FFFFUL, 0, 0, 0, sia_regenhash, NULL, NULL, queue_sia_kernel, sia_gen_hash, NULL },
   { NULL, ALGO_UNK, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL }
 };
 #else

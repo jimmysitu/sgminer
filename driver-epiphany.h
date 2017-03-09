@@ -35,14 +35,17 @@
 
 extern void print_epi_ndevs(int *ndevs);
 
-#define _BufOffset (0x01000000)
+#define SHARED_DRAM (0x01000000)
 extern struct device_drv epiphany_drv;
+
 typedef struct _shared_buf_t {
 	uint8_t data[256];
   uint64_t target;
-	volatile uint32_t outputBuffer;
+  uint32_t offset;                // work start offset
+	volatile uint32_t nonce;
 	volatile uint8_t start;         // Start flag, set by host
 	volatile uint8_t found;         // Nonce found flag, set by device
+	volatile uint8_t done;          // Hash job done flag, set by device
 } shared_buf_t;
 
 

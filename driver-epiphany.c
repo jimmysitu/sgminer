@@ -25,6 +25,11 @@ void print_epi_ndevs(int *ndevs)
 struct cgpu_info epis[MAX_EPIDEVICES]; /* Maximum number apparently possible */
 struct cgpu_info *cpus;
 
+struct epiphany_thread_data {
+  int(*queue_kernel_parameters)(epiphany_dev *, dev_blk_ctx *);
+  uint32_t *res;
+};
+
 static void epiphany_detect()
 {
 	e_platform_t platform;
@@ -72,7 +77,8 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
 	char *fullpath = alloca(PATH_MAX);
 	char filename[256];
 
-	if (e_alloc(emem, _BufOffset, rows * cols * sizeof(shared_buf_t)) == E_ERR) {
+  // Allocate a share buffer with Epiphany device
+	if (e_alloc(emem, SHARED_DRAM, rows * cols * sizeof(shared_buf_t)) == E_ERR) {
 		applog(LOG_ERR, "Error: Could not alloc shared Epiphany memory.");
 		return false;
 	}
@@ -90,7 +96,7 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
   applog(LOG_DEBUG, "Using source file %s", filename);
 
 	strcpy(fullpath, sgminer_path);
-	strcat(fullpath, "/");
+	strcat(fullpath, "/kernel/");
 	strcat(fullpath, filename);
 	FILE* checkf = fopen(fullpath, "r");
 	if (!checkf) {
@@ -114,13 +120,30 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
 static bool epiphany_thread_init(struct thr_info *thr)
 {
   const int thr_id = thr->id;
-  struct cgpu_info *gpu = thr->cgpu;
+  struct cgpu_info *cgpu = thr->cgpu;
+  thrdata = (struct epiphany_thread_data *)calloc(1, sizeof(*thrdata));
+  thr->cgpu_data = thrdata;
+  int buffersize = BUFFERSIZE;
   
-  // TODO: do some initial here
+  thrdata->queue_kernel_parameters = cgpu->algorithm.queue_kernel;
+  
+  if (!thrdata) {
+    applog(LOG_ERR, "Failed to calloc in epiphany_thread_init");
+    return false;
+  }
 
-  gpu->status = LIFE_WELL;
+  thrdata->queue_kernel_parameters = cgpu->algorithm.queue_kernel;
+  thrdata->res = (uint32_t *)calloc(buffersize, 1);
 
-  gpu->device_last_well = time(NULL);
+  if (!thrdata->res) {
+    free(thrdata);
+    applog(LOG_ERR, "Failed to calloc in epiphany_thread_init");
+    return false;
+  }
+
+  cgpu->status = LIFE_WELL;
+
+  cgpu->device_last_well = time(NULL);
 
   return true;
 }
@@ -137,16 +160,64 @@ static bool epiphany_prepare_work(struct thr_info __maybe_unused *thr, struct wo
 static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
   int64_t __maybe_unused max_nonce)
 {
+  struct cgpu_info *cgpu = thr->cgpu;
 	const int thr_id = thr->id;
-	unsigned char hash1[64];
-	uint32_t first_nonce = work->blk.nonce;
+	e_epiphany_t *dev = &cgpu->epiphany_dev;
+	unsigned rows = cgpu->epiphany_rows;
+	unsigned cols = cgpu->epiphany_cols;
+  uint32_t found = cgpu->algorithm.found_idx;
+  int buffersize = BUFFERSIZE;
+	
+  uint32_t first_nonce = work->blk.nonce;
 	uint32_t last_nonce;
-	bool rc;
+	int status;
 
-  int64_t hashes = 100;
+  int64_t hashes;
 
-  //TODO: Add real hash code here
+  status = thrdata->queue_kernel_parameters(dev, &work->blk, rows, cols);
+  if (unlikely(status != 0)) {
+    applog(LOG_ERR, "Error: clSetKernelArg of all params failed.");
+    return -1;
+  }
   
+  int i, j;
+  uint8_t start = 1
+  for(i = 0; i < rows; i++){
+    for(j = 0; i < cols; i++){
+      e_write(dev, i, j, 0x710C, &start, sizeof(uint8_t));          // start
+    }
+  }
+ 
+  thrdata->res[found] = 0;
+  uint8_t done = 0;
+  uint32_t nonce;
+  while(!done){
+    for(i = 0; i < rows; i++){
+      for(j = 0; i < cols; i++){
+        uint8_t check = 0;
+        e_read(dev, i, j, 0x710D, &check, sizeof(uint8_t));   // check if found
+        if(check){
+          e_read(dev, i, j, 0x7108, &thrdata->res[thrdata->res[found]], sizeof(uint8_t));  // get golden nonce 
+          thrdata->res[found]++;
+        }
+        e_read(dev, i, j, 0x710E, &check, sizeof(uint8_t));   // check if done
+        if(check){
+          e_read(dev, i, j, 0x7108, &last_nonce, sizeof(uint8_t));    // get last nonce 
+          done = 1
+        }
+      }
+    }
+  } // while
+
+  /* found entry is used as a counter to say how many nonces exist */
+  if (thrdata->res[found]) {
+    applog(LOG_DEBUG, "EPI %d found something?", cgpu->device_id);
+    postcalc_hash_async(thr, work, thrdata->res);
+    memset(thrdata->res, 0, buffersize);
+  }
+
+  work->blk.nonce += last_nonce;
+  hashes = last_nonce - first_nonce;
 	return hashes;
 }
 

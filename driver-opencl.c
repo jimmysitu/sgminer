@@ -1326,7 +1326,7 @@ static bool opencl_thread_prepare(struct thr_info *thr)
 static bool opencl_thread_init(struct thr_info *thr)
 {
   const int thr_id = thr->id;
-  struct cgpu_info *gpu = thr->cgpu;
+  struct cgpu_info *cgpu = thr->cgpu;
   struct opencl_thread_data *thrdata;
   _clState *clState = clStates[thr_id];
   cl_int status = 0;
@@ -1339,7 +1339,7 @@ static bool opencl_thread_init(struct thr_info *thr)
     return false;
   }
 
-  thrdata->queue_kernel_parameters = gpu->algorithm.queue_kernel;
+  thrdata->queue_kernel_parameters = cgpu->algorithm.queue_kernel;
   thrdata->res = (uint32_t *)calloc(buffersize, 1);
 
   if (!thrdata->res) {
@@ -1357,9 +1357,9 @@ static bool opencl_thread_init(struct thr_info *thr)
     return false;
   }
 
-  gpu->status = LIFE_WELL;
+  cgpu->status = LIFE_WELL;
 
-  gpu->device_last_well = time(NULL);
+  cgpu->device_last_well = time(NULL);
 
   return true;
 }
@@ -1379,7 +1379,7 @@ static int64_t opencl_scanhash(struct thr_info *thr, struct work *work,
 {
   const int thr_id = thr->id;
   struct opencl_thread_data *thrdata = (struct opencl_thread_data *)thr->cgpu_data;
-  struct cgpu_info *gpu = thr->cgpu;
+  struct cgpu_info *cgpu = thr->cgpu;
   _clState *clState = clStates[thr_id];
   const int dynamic_us = opt_dynamic_interval * 1000;
 
@@ -1388,33 +1388,33 @@ static int64_t opencl_scanhash(struct thr_info *thr, struct work *work,
   size_t localThreads[1] = { clState->wsize };
   size_t *p_global_work_offset = NULL;
   int64_t hashes;
-  int found = gpu->algorithm.found_idx;
+  uint32_t found = cgpu->algorithm.found_idx;
   int buffersize = BUFFERSIZE;
   unsigned int i;
 
   /* Windows' timer resolution is only 15ms so oversample 5x */
-  if (gpu->dynamic && (++gpu->intervals * dynamic_us) > 70000) {
+  if (cgpu->dynamic && (++cgpu->intervals * dynamic_us) > 70000) {
     struct timeval tv_gpuend;
-    double gpu_us;
+    double cgpu_us;
 
     cgtime(&tv_gpuend);
-    gpu_us = us_tdiff(&tv_gpuend, &gpu->tv_gpustart) / gpu->intervals;
-    if (gpu_us > dynamic_us) {
-      if (gpu->intensity > MIN_INTENSITY)
-        --gpu->intensity;
+    cgpu_us = us_tdiff(&tv_gpuend, &cgpu->tv_gpustart) / cgpu->intervals;
+    if (cgpu_us > dynamic_us) {
+      if (cgpu->intensity > MIN_INTENSITY)
+        --cgpu->intensity;
     }
-    else if (gpu_us < dynamic_us / 2) {
-      if (gpu->intensity < MAX_INTENSITY)
-        ++gpu->intensity;
+    else if (cgpu_us < dynamic_us / 2) {
+      if (cgpu->intensity < MAX_INTENSITY)
+        ++cgpu->intensity;
     }
-    memcpy(&(gpu->tv_gpustart), &tv_gpuend, sizeof(struct timeval));
-    gpu->intervals = 0;
+    memcpy(&(cgpu->tv_gpustart), &tv_gpuend, sizeof(struct timeval));
+    cgpu->intervals = 0;
   }
 
   set_threads_hashes(clState->vwidth, clState->compute_shaders, &hashes, globalThreads, localThreads[0],
-    &gpu->intensity, &gpu->xintensity, &gpu->rawintensity, &gpu->algorithm);
-  if (hashes > gpu->max_hashes)
-    gpu->max_hashes = hashes;
+    &cgpu->intensity, &cgpu->xintensity, &cgpu->rawintensity, &cgpu->algorithm);
+  if (hashes > cgpu->max_hashes)
+    cgpu->max_hashes = hashes;
 
   status = thrdata->queue_kernel_parameters(clState, &work->blk, globalThreads[0]);
   if (unlikely(status != CL_SUCCESS)) {
@@ -1462,7 +1462,7 @@ static int64_t opencl_scanhash(struct thr_info *thr, struct work *work,
   /* The amount of work scanned can fluctuate when intensity changes
    * and since we do this one cycle behind, we increment the work more
    * than enough to prevent repeating work */
-  work->blk.nonce += gpu->max_hashes;
+  work->blk.nonce += cgpu->max_hashes;
 
   /* This finish flushes the readbuffer set with CL_FALSE in clEnqueueReadBuffer */
   clFinish(clState->commandQueue);
@@ -1494,7 +1494,7 @@ static int64_t opencl_scanhash(struct thr_info *thr, struct work *work,
       }
     }
 
-    applog(LOG_DEBUG, "GPU %d found something?", gpu->device_id);
+    applog(LOG_DEBUG, "GPU %d found something?", cgpu->device_id);
     postcalc_hash_async(thr, work, thrdata->res);
 
 //	postcalc_hash(thr);

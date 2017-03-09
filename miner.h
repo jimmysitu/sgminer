@@ -1280,6 +1280,7 @@ extern struct timeval block_timeval;
 extern struct opt_table opt_config_table[];
 
 typedef struct _dev_blk_ctx {
+#ifdef USE_OPENCL
   cl_uint ctx_a; cl_uint ctx_b; cl_uint ctx_c; cl_uint ctx_d;
   cl_uint ctx_e; cl_uint ctx_f; cl_uint ctx_g; cl_uint ctx_h;
   cl_uint cty_a; cl_uint cty_b; cl_uint cty_c; cl_uint cty_d;
@@ -1304,6 +1305,7 @@ typedef struct _dev_blk_ctx {
   cl_uint B1addK6, PreVal0addK7, W16addK16, W17addK17;
   cl_uint zeroA, zeroB;
   cl_uint oneA, twoA, threeA, fourA, fiveA, sixA, sevenA;
+#endif
 
   struct work *work;
 } dev_blk_ctx;

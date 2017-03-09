@@ -44,7 +44,13 @@ const uint32_t SHA256_K[64] = {
 
 void precalc_hash(dev_blk_ctx *blk, uint32_t *state, uint32_t *data)
 {
+#ifdef USE_OPENCL
   cl_uint A, B, C, D, E, F, G, H;
+#endif
+
+#ifdef USE_EPIPHANY
+  uint A, B, C, D, E, F, G, H;
+#endif
 
   A = state[0];
   B = state[1];

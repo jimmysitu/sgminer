@@ -1306,8 +1306,32 @@ typedef struct _dev_blk_ctx {
   cl_uint zeroA, zeroB;
   cl_uint oneA, twoA, threeA, fourA, fiveA, sixA, sevenA;
 #endif
+
 #ifdef USE_EPIPHANY
-  uint nonce;
+  uint ctx_a; uint ctx_b; uint ctx_c; uint ctx_d;
+  uint ctx_e; uint ctx_f; uint ctx_g; uint ctx_h;
+  uint cty_a; uint cty_b; uint cty_c; uint cty_d;
+  uint cty_e; uint cty_f; uint cty_g; uint cty_h;
+  uint cty_i; uint cty_j; uint cty_k; uint cty_l;
+  uint cty_m; uint cty_n; uint cty_o; uint cty_p;
+  uint merkle; uint ntime; uint nbits; uint nonce;
+  uint fW0; uint fW1; uint fW2; uint fW3; uint fW15;
+  uint fW01r; uint fcty_e; uint fcty_e2;
+  uint W16; uint W17; uint W2;
+  uint PreVal4; uint T1;
+  uint C1addK5; uint D1A; uint W2A; uint W17_2;
+  uint PreVal4addT1; uint T1substate0;
+  uint PreVal4_2;
+  uint PreVal0;
+  uint PreW18;
+  uint PreW19;
+  uint PreW31;
+  uint PreW32;
+
+  /* FIXME: remove (For diakgcn) */
+  uint B1addK6, PreVal0addK7, W16addK16, W17addK17;
+  uint zeroA, zeroB;
+  uint oneA, twoA, threeA, fourA, fiveA, sixA, sevenA;
 #endif
   struct work *work;
 } dev_blk_ctx;

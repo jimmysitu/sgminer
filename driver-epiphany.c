@@ -167,6 +167,7 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
 {
   struct cgpu_info *cgpu = thr->cgpu;
 	const int thr_id = thr->id;
+  struct epiphany_thread_data *thrdata = (struct epiphany_thread_data *)thr->cgpu_data;
 	e_epiphany_t *dev = &cgpu->epiphany_dev;
 	unsigned rows = cgpu->epiphany_rows;
 	unsigned cols = cgpu->epiphany_cols;

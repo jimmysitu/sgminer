@@ -130,55 +130,63 @@ void Round(uint8_t r){
 
 int main(){
   int i, j;
-  uint32_t count = 0;
+  uint32_t count;
+  uint32_t local;
+  
+  while(1){ 
+    count = 0;
+    local = e_get_coreid();
+    local = (local >> 6) << 2 + (local && 0x3F);
+    local = local << 10;
 
-  while(!start){
     // wait until host start e-core
-  }
+    while(!start);
 
-  m[0] = *(data + 0);
-	m[1] = *(data + 8);
-	m[2] = *(data + 16);
-	m[3] = *(data + 24);
-	m[4] = (uint64_t)((*offset) + (e_get_coreid() << 20));
-	m[5] = *(data + 40);
-	m[6] = *(data + 48);
-	m[7] = *(data + 56);
-	m[8] = *(data + 64);
-	m[9] = *(data + 72);
-	m[10] = m[11] = m[12] = m[13] = m[14] = m[15] = 0;
+    m[0] = *(data + 0);
+    m[1] = *(data + 8);
+    m[2] = *(data + 16);
+    m[3] = *(data + 24);
+    m[4] = (uint64_t)((*offset) + local);
+    m[5] = *(data + 40);
+    m[6] = *(data + 48);
+    m[7] = *(data + 56);
+    m[8] = *(data + 64);
+    m[9] = *(data + 72);
+    m[10] = m[11] = m[12] = m[13] = m[14] = m[15] = 0;
 
-  while(*done){
-    for(i=0; i<16; i++){
-      v[i] = iv[i];
-    }
+    while(!(*done)){
+      for(i=0; i<16; i++){
+        v[i] = iv[i];
+      }
 
-    Round( 0 );
-    Round( 1 );
-    Round( 2 );
-    Round( 3 );
-    Round( 4 );
-    Round( 5 );
-    Round( 6 );
-    Round( 7 );
-    Round( 8 );
-    Round( 9 );
-    Round( 10 );
-    Round( 11 );
+      Round( 0 );
+      Round( 1 );
+      Round( 2 );
+      Round( 3 );
+      Round( 4 );
+      Round( 5 );
+      Round( 6 );
+      Round( 7 );
+      Round( 8 );
+      Round( 9 );
+      Round( 10 );
+      Round( 11 );
 
-    (*found) = (SWAP8(0x6a09e667f2bdc928 ^ v[0] ^ v[8]) <= (*target));
-    if(*found){
-      (*nonce) = SWAP4((uint32_t)m[4]);
-      (*done) = 1;
-    }else{
-      m[4]++;
-      count++;
-      if(count>>20){
+      (*found) = (SWAP8(0x6a09e667f2bdc928 ^ v[0] ^ v[8]) <= (*target));
+      if(*found){
         (*nonce) = SWAP4((uint32_t)m[4]);
         (*done) = 1;
+      }else{
+        m[4]++;
+        count++;
+        if(count>>10){
+          (*nonce) = SWAP4((uint32_t)m[4]);
+          (*done) = 1;
+        }
       }
-    }
-  }
+    } // end of while(!(*done))
+    (*start) = 0;
+  } // end of while(1)
 
   return 0;
 }

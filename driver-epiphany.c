@@ -191,6 +191,7 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
   for(i = 0; i < rows; i++){
     for(j = 0; i < cols; i++){
       e_write(dev, i, j, 0x710C, &start, sizeof(uint8_t));          // start
+      applog(LOG_DEBUG, "Started e-core: %d, %d.", i, j);
     }
   }
  
@@ -205,11 +206,13 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
         if(check){
           e_read(dev, i, j, 0x7108, &thrdata->res[thrdata->res[found]], sizeof(uint8_t));  // get golden nonce 
           thrdata->res[found]++;
+          applog(LOG_DEBUG, "EPI e-core (%d, %d) found something", i, j);
         }
         e_read(dev, i, j, 0x710E, &check, sizeof(uint8_t));   // check if done
         if(check){
           e_read(dev, i, j, 0x7108, &last_nonce, sizeof(uint8_t));    // get last nonce 
           done = 1;
+          applog(LOG_DEBUG, "EPI e-core (%d, %d) done", i, j);
         }
       }
     }

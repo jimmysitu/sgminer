@@ -29,6 +29,7 @@
 #include <e_lib.h>
 
 
+
 #define ROTR64(x, y)  (((x) >> (y)) ^ ((x) << (64 - (y))))
 
 #define G(r,i,a,b,c,d) \
@@ -43,7 +44,7 @@
   b = ROTR64(b ^ c, 63); \
 }
 
-#define ROUND(r)                    \
+#define ROUND(r) \
 	G(r,0,v[ 0],v[ 4],v[ 8],v[12]); \
 	G(r,1,v[ 1],v[ 5],v[ 9],v[13]); \
 	G(r,2,v[ 2],v[ 6],v[10],v[14]); \
@@ -52,7 +53,6 @@
 	G(r,5,v[ 1],v[ 6],v[11],v[12]); \
 	G(r,6,v[ 2],v[ 7],v[ 8],v[13]); \
 	G(r,7,v[ 3],v[ 4],v[ 9],v[14]); \
-
 
 #define SWAP4(x) \
    ((((uint32_t)(x) >> 24) & 0x000000FF) | \
@@ -114,9 +114,22 @@ const uint64_t iv[16] = {
 	0x510e527fade68281, 0x9b05688c2b3e6c1f, 0xe07c265404be4294, 0x5be0cd19137e2179
 };
 
+uint64_t m[16], v[16];
+
+void Round(uint8_t r){
+	G(r,0,v[ 0],v[ 4],v[ 8],v[12]);
+	G(r,1,v[ 1],v[ 5],v[ 9],v[13]);
+	G(r,2,v[ 2],v[ 6],v[10],v[14]);
+	G(r,3,v[ 3],v[ 7],v[11],v[15]);
+	G(r,4,v[ 0],v[ 5],v[10],v[15]);
+	G(r,5,v[ 1],v[ 6],v[11],v[12]);
+	G(r,6,v[ 2],v[ 7],v[ 8],v[13]);
+	G(r,7,v[ 3],v[ 4],v[ 9],v[14]);
+}
+
+
 int main(){
   int i, j;
-	uint64_t m[16], v[16];
   uint32_t count = 0;
 
   while(!start){
@@ -140,18 +153,18 @@ int main(){
       v[i] = iv[i];
     }
 
-    ROUND( 0 );
-    ROUND( 1 );
-    ROUND( 2 );
-    ROUND( 3 );
-    ROUND( 4 );
-    ROUND( 5 );
-    ROUND( 6 );
-    ROUND( 7 );
-    ROUND( 8 );
-    ROUND( 9 );
-    ROUND( 10 );
-    ROUND( 11 );
+    Round( 0 );
+    Round( 1 );
+    Round( 2 );
+    Round( 3 );
+    Round( 4 );
+    Round( 5 );
+    Round( 6 );
+    Round( 7 );
+    Round( 8 );
+    Round( 9 );
+    Round( 10 );
+    Round( 11 );
 
     (*found) = (SWAP8(0x6a09e667f2bdc928 ^ v[0] ^ v[8]) <= (*target));
     if(*found){
@@ -161,6 +174,7 @@ int main(){
       m[4]++;
       count++;
       if(count>>20){
+        (*nonce) = SWAP4((uint32_t)m[4]);
         (*done) = 1;
       }
     }

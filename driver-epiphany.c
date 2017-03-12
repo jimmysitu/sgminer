@@ -182,7 +182,7 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
 
   status = thrdata->queue_kernel_parameters(dev, &work->blk, rows, cols);
   if (unlikely(status != 0)) {
-    applog(LOG_ERR, "Error: clSetKernelArg of all params failed.");
+    applog(LOG_ERR, "Error queue_kernel_parameters failed.");
     return -1;
   }
   

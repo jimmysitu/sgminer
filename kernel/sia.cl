@@ -1,4 +1,4 @@
-/* vim: ft=c ts=2 */
+/* vim: set ft=c ts=2: */
 #define DEBUG 0
 
 #if __ENDIAN_LITTLE__

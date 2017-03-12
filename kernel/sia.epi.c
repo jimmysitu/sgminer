@@ -73,17 +73,17 @@
    )
 
 
-typedef struct _shared_buf_t {
-	uint8_t data[256];
-  uint32_t target;
-  uint32_t offset;                // work start offset
-	volatile uint32_t nonce;
-	volatile uint8_t start;         // Start flag, set by host
-	volatile uint8_t found;         // Nonce found flag, set by device
-	volatile uint8_t done;          // Hash job done flag, set by device
-} shared_buf_t;
-
-volatile shared_buf_t SharedBuf[16] SECTION("shared_dram"); // Share buffer with host in dram
+//typedef struct _shared_buf_t {
+//	uint8_t data[256];
+//  uint32_t target;
+//  uint32_t offset;                // work start offset
+//	volatile uint32_t nonce;
+//	volatile uint8_t start;         // Start flag, set by host
+//	volatile uint8_t found;         // Nonce found flag, set by device
+//	volatile uint8_t done;          // Hash job done flag, set by device
+//} shared_buf_t;
+//
+//volatile shared_buf_t SharedBuf[16] SECTION("shared_dram"); // Share buffer with host in dram
 
 volatile uint8_t  *data   = (void *) 0x7000;
 volatile uint32_t *target = (void *) 0x7100;
@@ -154,7 +154,7 @@ int main(){
     ROUND( 11 );
 
     (*found) = (SWAP8(0x6a09e667f2bdc928 ^ v[0] ^ v[8]) <= (*target));
-    if (found){
+    if(*found){
       (*nonce) = SWAP4((uint32_t)m[4]);
       (*done) = 1;
     }else{
@@ -166,6 +166,6 @@ int main(){
     }
   }
 
-  return 0
+  return 0;
 }
 

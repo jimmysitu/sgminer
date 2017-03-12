@@ -96,7 +96,7 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
   
   applog(LOG_INFO, "Init EPI thread %i EPI %i virtual EPI %i", i, epi, virtual_epi);
 
-  sprintf(filename, "%s.srec", (!empty_string(epis[virtual_epi].algorithm.kernelfile) ? epis[virtual_epi].algorithm.kernelfile : epis[virtual_epi].algorithm.name));
+  sprintf(filename, "%s.elf", (!empty_string(epis[virtual_epi].algorithm.kernelfile) ? epis[virtual_epi].algorithm.kernelfile : epis[virtual_epi].algorithm.name));
   applog(LOG_DEBUG, "Using source file %s", filename);
 
 	strcpy(fullpath, sgminer_path);

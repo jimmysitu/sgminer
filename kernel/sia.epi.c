@@ -29,7 +29,7 @@
 #include <stdint.h>
 #include <e_lib.h>
 
-#define DEBUG 1
+//#define DEBUG 1
 
 #define ROTR64(x, y)  (((x) >> (y)) ^ ((x) << (64 - (y))))
 
@@ -174,7 +174,7 @@ int main(){
       Round( 11 );
 
       (*found) = (SWAP8(0x6a09e667f2bdc928 ^ v[0] ^ v[8]) <= (*target));
-      (*nonce) = SWAP4((uint32_t)m[4]);
+      (*nonce) = 0xAAFF55AA;
 #ifdef DEBUG
       memcpy(&SharedBuf[idx], data, sizeof(shared_buf_t));
 #endif

@@ -193,7 +193,7 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
       e_write(dev, i, j, 0x710C, &start, sizeof(uint8_t));          // start
     }
   }
-  applog(LOG_DEBUG, "[EPI] Started %d * %d e-cores.", i, j);
+  applog(LOG_DEBUG, "[EPI] Started %d*%d e-cores.", i, j);
  
   thrdata->res[found] = 0;
   uint8_t done = 0;
@@ -204,19 +204,19 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
         uint8_t check = 0;
         e_read(dev, i, j, 0x710D, &check, sizeof(uint8_t));   // check if found
         if(check){
-          e_read(dev, i, j, 0x7108, &thrdata->res[thrdata->res[found]], sizeof(uint8_t));  // get golden nonce 
+          e_read(dev, i, j, 0x7108, &thrdata->res[thrdata->res[found]], sizeof(uint32_t));  // get golden nonce 
           thrdata->res[found]++;
           applog(LOG_DEBUG, "[EPI] e-core (%d, %d) found something", i, j);
         }
         e_read(dev, i, j, 0x710E, &check, sizeof(uint8_t));   // check if done
         if(check){
-          e_read(dev, i, j, 0x7108, &last_nonce, sizeof(uint8_t));    // get last nonce 
+          e_read(dev, i, j, 0x7108, &last_nonce, sizeof(uint32_t));    // get last nonce 
           done = 1;
           applog(LOG_DEBUG, "[EPI] e-core (%d, %d) done", i, j);
         }
       }
     }
-    e_read(dev, 3, 3, 0x7108, &last_nonce, sizeof(uint8_t));    // get last nonce 
+    e_read(dev, 3, 3, 0x7108, &last_nonce, sizeof(uint32_t));    // get last nonce 
     applog(LOG_DEBUG, "[EPI] last_nonce is 0x%08x", last_nonce);
   } // while
 

@@ -25,10 +25,11 @@
  *
  */
 
+#include <string.h>
 #include <stdint.h>
 #include <e_lib.h>
 
-
+#define DEBUG 1
 
 #define ROTR64(x, y)  (((x) >> (y)) ^ ((x) << (64 - (y))))
 
@@ -72,18 +73,19 @@
     (((uint64_t)(x) << 56) & 0xFF00000000000000)   \
    )
 
+#ifdef DEBUG
+typedef struct _shared_buf_t {
+	uint8_t data[256];
+  uint32_t target;
+  uint32_t offset;                // work start offset
+	volatile uint32_t nonce;
+	volatile uint8_t start;         // Start flag, set by host
+	volatile uint8_t found;         // Nonce found flag, set by device
+	volatile uint8_t done;          // Hash job done flag, set by device
+} shared_buf_t;
 
-//typedef struct _shared_buf_t {
-//	uint8_t data[256];
-//  uint32_t target;
-//  uint32_t offset;                // work start offset
-//	volatile uint32_t nonce;
-//	volatile uint8_t start;         // Start flag, set by host
-//	volatile uint8_t found;         // Nonce found flag, set by device
-//	volatile uint8_t done;          // Hash job done flag, set by device
-//} shared_buf_t;
-//
-//volatile shared_buf_t SharedBuf[16] SECTION("shared_dram"); // Share buffer with host in dram
+volatile shared_buf_t SharedBuf[16] SECTION("shared_dram"); // Share buffer with host in dram
+#endif
 
 volatile uint8_t  *data   = (void *) 0x7000;
 volatile uint32_t *target = (void *) 0x7100;
@@ -136,8 +138,7 @@ int main(){
   while(1){ 
     count = 0;
     local = e_get_coreid();
-    local = (local >> 6) << 2 + (local && 0x3F);
-    local = local << 10;
+    uint32_t idx = ((local >> 6) - 32) << 2 + ((local && 0x3F) - 8);
 
     // wait until host start e-core
     while(!start);
@@ -146,7 +147,7 @@ int main(){
     m[1] = *(data + 8);
     m[2] = *(data + 16);
     m[3] = *(data + 24);
-    m[4] = (uint64_t)((*offset) + local);
+    m[4] = (uint64_t)((*offset) + idx << 10);
     m[5] = *(data + 40);
     m[6] = *(data + 48);
     m[7] = *(data + 56);
@@ -173,14 +174,16 @@ int main(){
       Round( 11 );
 
       (*found) = (SWAP8(0x6a09e667f2bdc928 ^ v[0] ^ v[8]) <= (*target));
+      (*nonce) = SWAP4((uint32_t)m[4]);
+#ifdef DEBUG
+      memcpy(&SharedBuf[idx], data, sizeof(shared_buf_t));
+#endif
       if(*found){
-        (*nonce) = SWAP4((uint32_t)m[4]);
         (*done) = 1;
       }else{
         m[4]++;
         count++;
         if(count>>10){
-          (*nonce) = SWAP4((uint32_t)m[4]);
           (*done) = 1;
         }
       }

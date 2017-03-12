@@ -191,9 +191,9 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
   for(i = 0; i < rows; i++){
     for(j = 0; j < cols; j++){
       e_write(dev, i, j, 0x710C, &start, sizeof(uint8_t));          // start
-      applog(LOG_DEBUG, "[EPI] Started e-core: %d, %d.", i, j);
     }
   }
+  applog(LOG_DEBUG, "[EPI] Started %d * %d e-cores.", i, j);
  
   thrdata->res[found] = 0;
   uint8_t done = 0;
@@ -216,6 +216,8 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
         }
       }
     }
+    e_read(dev, 3, 3, 0x7108, &last_nonce, sizeof(uint8_t));    // get last nonce 
+    applog(LOG_DEBUG, "[EPI] last_nonce is 0x%08x", last_nonce);
   } // while
 
   /* found entry is used as a counter to say how many nonces exist */

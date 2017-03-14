@@ -1117,17 +1117,17 @@ static cl_int queue_sia_kernel(struct __clState *clState, struct _dev_blk_ctx *b
 #ifdef USE_EPIPHANY
 static int queue_sia_kernel(e_epiphany_t *dev, struct _dev_blk_ctx *blk, unsigned rows, unsigned cols)
 {
-  ulong le_target;
-  unsigned char data[80];
-  le_target = *(ulong *)(blk->work->device_target + 24);
+  uint32_t target;
+  uint8_t data[80];
+  target = *(uint32_t *)(blk->work->device_target + 24);
   flip80(data, blk->work->data);
   uint8_t start = 0;
   uint8_t found = 0;
   int i, j;
   for(i = 0; i < rows; i++){
     for(j = 0; i < cols; i++){
-      e_write(dev, i, j, 0x7000, &data, 80*sizeof(unsigned char));  // data
-      e_write(dev, i, j, 0x7100, &le_target, sizeof(ulong));        // target
+      e_write(dev, i, j, 0x7000, &data, 80*sizeof(uint8_t));        // data
+      e_write(dev, i, j, 0x7100, &target, sizeof(uint32_t));        // target
       e_write(dev, i, j, 0x710C, &start, sizeof(uint8_t));          // start
       e_write(dev, i, j, 0x710D, &found, sizeof(uint8_t));          // found
     }

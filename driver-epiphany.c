@@ -91,6 +91,10 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
 		applog(LOG_ERR, "Error: Could not start Epiphany cores.");
 		return false;
 	}
+	if (e_reset_group(dev) != E_OK) {
+		applog(LOG_ERR, "Error: Could not reset Epiphany working group.");
+  }
+
   
   // TODO: Jimmy, add compile flow here
   
@@ -114,6 +118,9 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
 		applog(LOG_ERR, "Error: Could not load %s on Epiphany.", fullpath);
 		return false;
 	}
+	if (e_start_group(dev) != E_OK) {
+		applog(LOG_ERR, "Error: Could not start Epiphany working group.");
+  }
 
   cgtime(&now);
   get_datestamp(cgpu->init, sizeof(cgpu->init), &now);
@@ -161,7 +168,7 @@ static bool epiphany_prepare_work(struct thr_info __maybe_unused *thr, struct wo
   return true;
 }
 
-
+#define GAP 12
 static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
   int64_t __maybe_unused max_nonce)
 {
@@ -171,9 +178,9 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
 	e_epiphany_t *dev = &cgpu->epiphany_dev;
 	unsigned rows = cgpu->epiphany_rows;
 	unsigned cols = cgpu->epiphany_cols;
-  uint32_t found = cgpu->algorithm.found_idx;
+  uint32_t found_idx = cgpu->algorithm.found_idx;
   int buffersize = BUFFERSIZE;
-	
+
   uint32_t first_nonce = work->blk.nonce;
 	uint32_t last_nonce;
 	int status;
@@ -185,50 +192,46 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
     applog(LOG_ERR, "Error queue_kernel_parameters failed.");
     return -1;
   }
-  
+
   int i, j;
   uint8_t start = 1;
   for(i = 0; i < rows; i++){
     for(j = 0; j < cols; j++){
+      e_write(dev, i, j, 0x7104, &first_nonce, sizeof(uint32_t));   // offset
       e_write(dev, i, j, 0x710C, &start, sizeof(uint8_t));          // start
     }
   }
   applog(LOG_DEBUG, "[EPI] Started %d*%d e-cores.", i, j);
- 
-  thrdata->res[found] = 0;
-  uint8_t done = 0;
+
+  thrdata->res[found_idx] = 0;
   uint32_t nonce;
-  while(!done){
+  while(!start){
     for(i = 0; i < rows; i++){
       for(j = 0; j < cols; j++){
-        uint8_t check = 0;
-        e_read(dev, i, j, 0x710D, &check, sizeof(uint8_t));   // check if found
-        if(check){
-          e_read(dev, i, j, 0x7108, &thrdata->res[thrdata->res[found]], sizeof(uint32_t));  // get golden nonce 
-          thrdata->res[found]++;
-          applog(LOG_DEBUG, "[EPI] e-core (%d, %d) found something", i, j);
-        }
-        e_read(dev, i, j, 0x710E, &check, sizeof(uint8_t));   // check if done
-        if(check){
-          e_read(dev, i, j, 0x7108, &last_nonce, sizeof(uint32_t));    // get last nonce 
-          done = 1;
-          applog(LOG_DEBUG, "[EPI] e-core (%d, %d) done", i, j);
+        e_read(dev, i, j, 0x710C, &start, sizeof(uint8_t));   // check if stop
+        if(!start){
+          uint8_t found = 0;
+          e_read(dev, i, j, 0x710D, &found, sizeof(uint8_t));         // check if found
+          e_read(dev, i, j, 0x7108, &last_nonce, sizeof(uint32_t));   // get last nonce before stop 
+          if(found){
+            thrdata->res[thrdata->res[found_idx]] = last_nonce;  // get golden nonce 
+            thrdata->res[found_idx]++;
+            applog(LOG_DEBUG, "[EPI] e-core (%d, %d) found something", i, j);
+          }
         }
       }
     }
-    e_read(dev, 3, 3, 0x7108, &last_nonce, sizeof(uint32_t));    // get last nonce 
-    applog(LOG_DEBUG, "[EPI] last_nonce is 0x%08x", last_nonce);
   } // while
 
   /* found entry is used as a counter to say how many nonces exist */
-  if (thrdata->res[found]) {
+  if (thrdata->res[found_idx]) {
     applog(LOG_DEBUG, "EPI %d found something?", cgpu->device_id);
     postcalc_hash_async(thr, work, thrdata->res);
     memset(thrdata->res, 0, buffersize);
   }
 
-  work->blk.nonce += last_nonce;
-  hashes = last_nonce - first_nonce;
+  work->blk.nonce += (1 << GAP) * 16;
+  hashes = (1 << GAP) * 16;
 	return hashes;
 }
 

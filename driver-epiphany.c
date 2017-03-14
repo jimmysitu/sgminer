@@ -205,7 +205,7 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
 
   thrdata->res[found_idx] = 0;
   uint32_t nonce;
-  while(!start){
+  while(start){
     for(i = 0; i < rows; i++){
       for(j = 0; j < cols; j++){
         e_read(dev, i, j, 0x710C, &start, sizeof(uint8_t));   // check if stop

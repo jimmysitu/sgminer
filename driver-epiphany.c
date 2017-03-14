@@ -202,6 +202,7 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
     }
   }
   applog(LOG_DEBUG, "[EPI] Started %d*%d e-cores.", i, j);
+  applog(LOG_DEBUG, "[EPI] Started with offset 0x%08x.", first_nonce);
 
   thrdata->res[found_idx] = 0;
   uint32_t nonce;

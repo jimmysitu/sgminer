@@ -184,7 +184,7 @@ int main(){
       memcpy(&SharedBuf[idx], data, sizeof(shared_buf_t));
 #endif
       if(*found){
-	(*start) = 0;
+        (*start) = 0;
       }else{
         m[4]++;
         if(count>>GAP){

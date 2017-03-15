@@ -206,13 +206,15 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
 
   thrdata->res[found_idx] = 0;
   uint32_t nonce;
-  uint32_t working = (1 << rows*cols) - 1;
+  uint32_t working = (1 << (rows*cols)) - 1;
   while(working){
     for(i = 0; i < rows; i++){
       for(j = 0; j < cols; j++){
-        e_read(dev, i, j, 0x710C, &start, sizeof(uint8_t));   // check if stop
+        if(e_read(dev, i, j, 0x710C, &start, sizeof(uint8_t)) != sizeof(uint8_t))   // check if stop
+          applog(LOG_ERR, "[EPI] Failed to read start flag on e-core (%d,%d)", i, j);
+
         if(!start){
-          working = working & (~(1 << i*cols + j));
+          working = working & (~(1 << (i * cols + j)));
           applog(LOG_DEBUG, "[EPI] All job on e-core (%d, %d) done, working cores: %x", i, j, working);
           uint8_t found = 0;
           e_read(dev, i, j, 0x710D, &found, sizeof(uint8_t));         // check if found

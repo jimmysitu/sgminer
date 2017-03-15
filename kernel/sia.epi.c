@@ -128,7 +128,7 @@ void Round(uint8_t r){
 	G(r,7,v[ 3],v[ 4],v[ 9],v[14]);
 }
 
-#define GAP   20
+#define GAP  16 
 
 int main(){
   int i, j;
@@ -187,7 +187,7 @@ int main(){
         (*start) = 0;
       }else{
         m[4]++;
-        if(count>>GAP){
+        if(count >> GAP){
           (*start) = 0;
         }
       }

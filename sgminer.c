@@ -7337,9 +7337,7 @@ static void hash_sole_work(struct thr_info *mythr)
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 
       thread_reportin(mythr);
-      applog(LOG_DEBUG, "Starting scanhash");
       hashes = drv->scanhash(mythr, work, work->blk.nonce + max_nonce);
-      applog(LOG_DEBUG, "Done with scanhash");
       thread_reportout(mythr);
 
       pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -7430,7 +7428,8 @@ void *miner_thread(void *userdata)
   struct device_drv *drv = cgpu->drv;
   char threadname[16];
 
-        snprintf(threadname, sizeof(threadname), "%d/Miner", thr_id);
+  applog(LOG_DEBUG, "Start of miner_thread");
+  snprintf(threadname, sizeof(threadname), "%d/Miner", thr_id);
   RenameThread(threadname);
 
   thread_reportout(mythr);

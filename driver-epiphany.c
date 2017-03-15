@@ -168,7 +168,7 @@ static bool epiphany_prepare_work(struct thr_info __maybe_unused *thr, struct wo
   return true;
 }
 
-#define GAP   20
+#define GAP   16
 static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
   int64_t __maybe_unused max_nonce)
 {

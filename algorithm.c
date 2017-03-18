@@ -1132,7 +1132,8 @@ static int queue_sia_kernel(e_epiphany_t *dev, struct _dev_blk_ctx *blk, unsigne
       e_write(dev, i, j, 0x710D, &found, sizeof(uint8_t));          // found
     }
   }
-  applog(LOG_DEBUG, "[EPI] Work are loaded into e-cores", i, j);
+  applog(LOG_DEBUG, "[EPI] Work data[0]: %016llX", *((uint64_t*)data));
+  applog(LOG_DEBUG, "[EPI] Work is loaded into e-cores", i, j);
   return 0;
 }
 #endif

@@ -1117,6 +1117,20 @@ static cl_int queue_sia_kernel(struct __clState *clState, struct _dev_blk_ctx *b
 #ifdef USE_EPIPHANY
 static int queue_sia_kernel(e_epiphany_t *dev, struct _dev_blk_ctx *blk, unsigned rows, unsigned cols)
 {
+
+uint64_t fake_data[10] = {
+        0x5D02000000000000,
+        0x4C1530E8862513E8,
+        0x474B940BBABEEEEF,
+        0x6EA321EB235C2AE9,
+        0x00000000020A1C88,
+        0x00000000584AB401,
+        0x3E1D8DBFA05F73E8,
+        0xFD53C016085D46B4,
+        0xAE8FBD793A2C3DFF,
+        0xE285A7BB9EACC0A5
+};
+
   uint32_t target;
   uint8_t data[80];
   target = *(uint32_t *)(blk->work->device_target + 24);
@@ -1126,7 +1140,7 @@ static int queue_sia_kernel(e_epiphany_t *dev, struct _dev_blk_ctx *blk, unsigne
   int i, j;
   for(i = 0; i < rows; i++){
     for(j = 0; i < cols; i++){
-      e_write(dev, i, j, 0x7000, &data, 80*sizeof(uint8_t));        // data
+      e_write(dev, i, j, 0x7000, &fake_data, 80*sizeof(uint8_t));        // data
       e_write(dev, i, j, 0x7100, &target, sizeof(uint32_t));        // target
       e_write(dev, i, j, 0x710C, &start, sizeof(uint8_t));          // start
       e_write(dev, i, j, 0x710D, &found, sizeof(uint8_t));          // found

@@ -1118,35 +1118,24 @@ static cl_int queue_sia_kernel(struct __clState *clState, struct _dev_blk_ctx *b
 static int queue_sia_kernel(e_epiphany_t *dev, struct _dev_blk_ctx *blk, unsigned rows, unsigned cols)
 {
 
-uint64_t fake_data[10] = {
-        0x5D02000000000000,
-        0x4C1530E8862513E8,
-        0x474B940BBABEEEEF,
-        0x6EA321EB235C2AE9,
-        0x00000000020A1C88,
-        0x00000000584AB401,
-        0x3E1D8DBFA05F73E8,
-        0xFD53C016085D46B4,
-        0xAE8FBD793A2C3DFF,
-        0xE285A7BB9EACC0A5
-};
-
   uint32_t target;
   uint8_t data[80];
   target = *(uint32_t *)(blk->work->device_target + 24);
   flip80(data, blk->work->data);
   uint8_t start = 0;
   uint8_t found = 0;
+
   int i, j;
   for(i = 0; i < rows; i++){
     for(j = 0; i < cols; i++){
-      e_write(dev, i, j, 0x7000, &fake_data, 80*sizeof(uint8_t));        // data
+      e_write(dev, i, j, 0x7000, &data, 80*sizeof(uint8_t));        // data
       e_write(dev, i, j, 0x7100, &target, sizeof(uint32_t));        // target
       e_write(dev, i, j, 0x710C, &start, sizeof(uint8_t));          // start
       e_write(dev, i, j, 0x710D, &found, sizeof(uint8_t));          // found
     }
   }
-  applog(LOG_DEBUG, "[EPI] Work data[0]: %016llX", *((uint64_t*)data));
+
+  applog(LOG_DEBUG, "[EPI] Work data header: %016llX", *((uint64_t*)data));
   applog(LOG_DEBUG, "[EPI] Work is loaded into e-cores", i, j);
   return 0;
 }
@@ -1170,7 +1159,7 @@ static cl_int queue_lbry_kernel(struct __clState *clState, struct _dev_blk_ctx *
   kernel = clState->extra_kernels;
   CL_SET_ARG_0(clState->padbuffer8);
   num = 0;
-  
+
   CL_NEXTKERNEL_SET_ARG(clState->padbuffer8);
   CL_SET_ARG(clState->outputBuffer);
   CL_SET_ARG(le_target);

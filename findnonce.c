@@ -206,7 +206,7 @@ static void *postcalc_hash(void *userdata)
     if (found == 0x0F)
       nonce = swab32(nonce);
 
-    applog(LOG_DEBUG, "[THR%d] OCL NONCE %08x (%lu) found in slot %d (found = %d)", thr->id, nonce, nonce, entry, found);
+    applog(LOG_DEBUG, "[THR%d] Device NONCE %08x (%lu) found in slot %d (found = %d)", thr->id, nonce, nonce, entry, found);
     submit_nonce(thr, pcd->work, nonce);
   }
 

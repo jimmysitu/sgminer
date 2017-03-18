@@ -214,8 +214,10 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
           applog(LOG_ERR, "[EPI] Failed to read start flag on e-core (%d,%d)", i, j);
 
         if(!start){
-          working = working & (~(1 << (i * cols + j)));
-          applog(LOG_DEBUG, "[EPI] All job on e-core (%d, %d) done, working cores: %x", i, j, working);
+          if(working != working & (~(1 << (i * cols + j)))){
+            working = working & (~(1 << (i * cols + j)));
+            applog(LOG_DEBUG, "[EPI] All job on e-core (%d, %d) done, working cores: %x", i, j, working);
+          }
           uint8_t found = 0;
           e_read(dev, i, j, 0x710D, &found, sizeof(uint8_t));         // check if found
           e_read(dev, i, j, 0x7108, &last_nonce, sizeof(uint32_t));   // get last nonce before stop 

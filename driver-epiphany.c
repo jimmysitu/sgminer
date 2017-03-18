@@ -168,7 +168,7 @@ static bool epiphany_prepare_work(struct thr_info __maybe_unused *thr, struct wo
   return true;
 }
 
-#define GAP   20
+#define GAP   22
 static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
   int64_t __maybe_unused max_nonce)
 {
@@ -223,12 +223,14 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
             thrdata->res[thrdata->res[found_idx]] = last_nonce;  // get golden nonce 
             thrdata->res[found_idx]++;
             applog(LOG_DEBUG, "[EPI] e-core (%d, %d) found something", i, j);
+            goto found_nonces; 
           }
         }
       }
     }
   } // while
 
+found_nonces:
   /* found entry is used as a counter to say how many nonces exist */
   if (thrdata->res[found_idx]) {
     applog(LOG_DEBUG, "EPI %d found something?", cgpu->device_id);

@@ -128,7 +128,7 @@ void Round(uint8_t r){
 	G(r,7,v[ 3],v[ 4],v[ 9],v[14]);
 }
 
-#define GAP  20
+#define GAP  22
 
 int main(){
   int i, j;

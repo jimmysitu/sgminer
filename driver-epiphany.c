@@ -78,7 +78,8 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
 	unsigned rows = cgpu->epiphany_rows;
 	unsigned cols = cgpu->epiphany_cols;
 
-	char *fullpath = alloca(PATH_MAX);
+	char *source_fullpath = alloca(PATH_MAX);
+	char *kernel_fullpath = alloca(PATH_MAX);
 	char source_filename[256];
 	char kernel_filename[256];
 	char compiler_cmd[512];
@@ -102,13 +103,13 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
   sprintf(source_filename, "%s.epi.c", (!empty_string(epis[virtual_epi].algorithm.kernelfile) ? epis[virtual_epi].algorithm.kernelfile : epis[virtual_epi].algorithm.name));
 
   applog(LOG_DEBUG, "Using source file %s", source_filename);
-	strcpy(fullpath, sgminer_path);
-	strcat(fullpath, "/kernel/");
-	strcat(fullpath, source_filename);
-	checkf = fopen(fullpath, "r");
+	strcpy(source_fullpath, sgminer_path);
+	strcat(source_fullpath, "/kernel/");
+	strcat(source_fullpath, source_filename);
+	checkf = fopen(source_fullpath, "r");
 	if (!checkf) {
 		thr->cgpu->status = LIFE_SICK;
-		applog(LOG_ERR, "Error: Could not find epiphany kernel: %s", fullpath);
+		applog(LOG_ERR, "Error: Could not find epiphany source: %s", source_fullpath);
 		return false;
 	}
 	fclose(checkf);
@@ -118,10 +119,13 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
   if(!esdk){
     applog(LOG_ERR, "Environment variable ${EPIPHANY_HOME} not found");
 		return false;
-  }else{
-    sprintf(kernel_filename, "%s.elf", (!empty_string(epis[virtual_epi].algorithm.kernelfile) ? epis[virtual_epi].algorithm.kernelfile : epis[virtual_epi].algorithm.name));
-    sprintf(compiler_cmd, "e-gcc -D GAP=%d -O2 -le-lib -T %s/bsp/current/internal.ldf -o %s %s", GAP, esdk, kernel_filename, source_filename);
   }
+
+  sprintf(kernel_filename, "%s.elf", (!empty_string(epis[virtual_epi].algorithm.kernelfile) ? epis[virtual_epi].algorithm.kernelfile : epis[virtual_epi].algorithm.name));
+  strcpy(kernel_fullpath, sgminer_path);
+  strcat(kernel_fullpath, "/kernel/");
+  strcat(kernel_fullpath, kernel_filename);
+  sprintf(compiler_cmd, "e-gcc -D GAP=%d -O2 -le-lib -T %s/bsp/current/internal.ldf -o %s %s", GAP, esdk, kernel_filename, source_fullpath);
 
   applog(LOG_DEBUG, "Compiling EPI kernel file\n\t%s", compiler_cmd);
   system(compiler_cmd);
@@ -129,19 +133,16 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
   applog(LOG_INFO, "Init EPI thread %i EPI %i virtual EPI %i", i, epi, virtual_epi);
   applog(LOG_DEBUG, "Using EPI kernel file %s", kernel_filename);
 
-  strcpy(fullpath, sgminer_path);
-  strcat(fullpath, "/kernel/");
-  strcat(fullpath, kernel_filename);
-	checkf = fopen(fullpath, "r");
+	checkf = fopen(kernel_fullpath, "r");
 	if (!checkf) {
 		thr->cgpu->status = LIFE_SICK;
-		applog(LOG_ERR, "Error: Could not find epiphany kernel: %s", fullpath);
+		applog(LOG_ERR, "Error: Could not find epiphany kernel: %s", kernel_fullpath);
 		return false;
 	}
 	fclose(checkf);
 
-	if (e_load_group(fullpath, dev, 0, 0, rows, cols, E_FALSE) == E_ERR) {
-		applog(LOG_ERR, "Error: Could not load %s on Epiphany.", fullpath);
+	if (e_load_group(kernel_fullpath, dev, 0, 0, rows, cols, E_FALSE) == E_ERR) {
+		applog(LOG_ERR, "Error: Could not load %s on Epiphany.", kernel_fullpath);
 		return false;
 	}
 	if (e_start_group(dev) != E_OK) {

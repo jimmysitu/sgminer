@@ -125,7 +125,7 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
   strcpy(kernel_fullpath, sgminer_path);
   strcat(kernel_fullpath, "/kernel/");
   strcat(kernel_fullpath, kernel_filename);
-  sprintf(compiler_cmd, "e-gcc -D GAP=%d -O2 -le-lib -T %s/bsps/current/internal.ldf -o %s %s", GAP, esdk, kernel_fullpath, source_fullpath);
+  sprintf(compiler_cmd, "e-gcc -D GAP=%d -O2 -T %s/bsps/current/internal.ldf -o %s %s -le-lib ", GAP, esdk, kernel_fullpath, source_fullpath);
 
   applog(LOG_DEBUG, "Compiling EPI kernel file\n\t%s", compiler_cmd);
   system(compiler_cmd);

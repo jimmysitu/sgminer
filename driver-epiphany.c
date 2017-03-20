@@ -79,7 +79,8 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
 	unsigned cols = cgpu->epiphany_cols;
 
 	char *fullpath = alloca(PATH_MAX);
-	char filename[256];
+	char source_filename[256];
+	char kernel_filename[256];
 
   // Allocate a share buffer with Epiphany device
 	if (e_alloc(emem, SHARED_DRAM, rows * cols * sizeof(shared_buf_t)) == E_ERR) {
@@ -95,17 +96,40 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
 		applog(LOG_ERR, "Error: Could not reset Epiphany working group.");
   }
 
+  // Check kernel source code
+  sprintf(source_filename, "%s.epi.c", (!empty_string(epis[virtual_epi].algorithm.kernelfile) ? epis[virtual_epi].algorithm.kernelfile : epis[virtual_epi].algorithm.name));
   
-  // TODO: Jimmy, add compile flow here
-  
-  applog(LOG_INFO, "Init EPI thread %i EPI %i virtual EPI %i", i, epi, virtual_epi);
-
-  sprintf(filename, "%s.elf", (!empty_string(epis[virtual_epi].algorithm.kernelfile) ? epis[virtual_epi].algorithm.kernelfile : epis[virtual_epi].algorithm.name));
-  applog(LOG_DEBUG, "Using source file %s", filename);
-
+  applog(LOG_DEBUG, "Using source file %s", source_filename);
 	strcpy(fullpath, sgminer_path);
 	strcat(fullpath, "/kernel/");
-	strcat(fullpath, filename);
+	strcat(fullpath, source_filename);
+	FILE* checkf = fopen(fullpath, "r");
+	if (!checkf) {
+		thr->cgpu->status = LIFE_SICK;
+		applog(LOG_ERR, "Error: Could not find epiphany kernel: %s", fullpath);
+		return false;
+	}
+	fclose(checkf);
+
+  char *esdk;
+  esdk = getenv("EPIPHANY_HOME");
+  if(!esdk){
+    applog(LOG_ERR, "Environment variable ${EPIPHANY_HOME} not found");
+		return false;
+  }else{
+    sprintf(target_filename, "%s.elf", (!empty_string(epis[virtual_epi].algorithm.kernelfile) ? epis[virtual_epi].algorithm.kernelfile : epis[virtual_epi].algorithm.name));
+    sprintf(compiler_cmd, "e-gcc -D GAP=%d -O2 -le-lib -T %s/bsp/current/internal.ldf -o %s %s", GAP, esdk, target_filename, source_filename);
+  }
+
+  applog(LOG_DEBUG, "Compiling EPI kernel file\n\t%s", compiler_cmd);
+  system(compiler_cmd);
+
+  applog(LOG_INFO, "Init EPI thread %i EPI %i virtual EPI %i", i, epi, virtual_epi);
+  applog(LOG_DEBUG, "Using EPI kernel file %s", target_filename);
+
+  strcpy(fullpath, sgminer_path);
+  strcat(fullpath, "/kernel/");
+  strcat(fullpath, target_filename);
 	FILE* checkf = fopen(fullpath, "r");
 	if (!checkf) {
 		thr->cgpu->status = LIFE_SICK;
@@ -168,7 +192,7 @@ static bool epiphany_prepare_work(struct thr_info __maybe_unused *thr, struct wo
   return true;
 }
 
-#define GAP   22
+#define GAP   20
 static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
   int64_t __maybe_unused max_nonce)
 {
@@ -214,7 +238,7 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
           applog(LOG_ERR, "[EPI] Failed to read start flag on e-core (%d,%d)", i, j);
 
         if(!start){
-          if(working != working & (~(1 << (i * cols + j)))){
+          if(working != (working & (~(1 << (i * cols + j))))){
             working = working & (~(1 << (i * cols + j)));
             applog(LOG_DEBUG, "[EPI] All job on e-core (%d, %d) done, working cores: %x", i, j, working);
           }

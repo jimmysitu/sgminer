@@ -231,6 +231,4 @@ void sia_regenhash(struct work *work)
   sia_gen_hash((const unsigned char *)data, 80, (unsigned char *)hash);
   swab256(ohash, hash);
   
-  //TODO, Jimmy, print data and ohash here to get hash golden input/output
-
 }

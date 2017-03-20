@@ -117,19 +117,19 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
     applog(LOG_ERR, "Environment variable ${EPIPHANY_HOME} not found");
 		return false;
   }else{
-    sprintf(target_filename, "%s.elf", (!empty_string(epis[virtual_epi].algorithm.kernelfile) ? epis[virtual_epi].algorithm.kernelfile : epis[virtual_epi].algorithm.name));
-    sprintf(compiler_cmd, "e-gcc -D GAP=%d -O2 -le-lib -T %s/bsp/current/internal.ldf -o %s %s", GAP, esdk, target_filename, source_filename);
+    sprintf(kernel_filename, "%s.elf", (!empty_string(epis[virtual_epi].algorithm.kernelfile) ? epis[virtual_epi].algorithm.kernelfile : epis[virtual_epi].algorithm.name));
+    sprintf(compiler_cmd, "e-gcc -D GAP=%d -O2 -le-lib -T %s/bsp/current/internal.ldf -o %s %s", GAP, esdk, kernel_filename, source_filename);
   }
 
   applog(LOG_DEBUG, "Compiling EPI kernel file\n\t%s", compiler_cmd);
   system(compiler_cmd);
 
   applog(LOG_INFO, "Init EPI thread %i EPI %i virtual EPI %i", i, epi, virtual_epi);
-  applog(LOG_DEBUG, "Using EPI kernel file %s", target_filename);
+  applog(LOG_DEBUG, "Using EPI kernel file %s", kernel_filename);
 
   strcpy(fullpath, sgminer_path);
   strcat(fullpath, "/kernel/");
-  strcat(fullpath, target_filename);
+  strcat(fullpath, kernel_filename);
 	FILE* checkf = fopen(fullpath, "r");
 	if (!checkf) {
 		thr->cgpu->status = LIFE_SICK;

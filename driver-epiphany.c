@@ -81,6 +81,7 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
 	char *fullpath = alloca(PATH_MAX);
 	char source_filename[256];
 	char kernel_filename[256];
+	char compiler_cmd[512];
 
   // Allocate a share buffer with Epiphany device
 	if (e_alloc(emem, SHARED_DRAM, rows * cols * sizeof(shared_buf_t)) == E_ERR) {

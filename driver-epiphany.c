@@ -82,6 +82,7 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
 	char source_filename[256];
 	char kernel_filename[256];
 	char compiler_cmd[512];
+  FILE* checkf;
 
   // Allocate a share buffer with Epiphany device
 	if (e_alloc(emem, SHARED_DRAM, rows * cols * sizeof(shared_buf_t)) == E_ERR) {
@@ -99,12 +100,12 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
 
   // Check kernel source code
   sprintf(source_filename, "%s.epi.c", (!empty_string(epis[virtual_epi].algorithm.kernelfile) ? epis[virtual_epi].algorithm.kernelfile : epis[virtual_epi].algorithm.name));
-  
+
   applog(LOG_DEBUG, "Using source file %s", source_filename);
 	strcpy(fullpath, sgminer_path);
 	strcat(fullpath, "/kernel/");
 	strcat(fullpath, source_filename);
-	FILE* checkf = fopen(fullpath, "r");
+	checkf = fopen(fullpath, "r");
 	if (!checkf) {
 		thr->cgpu->status = LIFE_SICK;
 		applog(LOG_ERR, "Error: Could not find epiphany kernel: %s", fullpath);
@@ -131,7 +132,7 @@ static bool epiphany_thread_prepare(struct thr_info *thr)
   strcpy(fullpath, sgminer_path);
   strcat(fullpath, "/kernel/");
   strcat(fullpath, kernel_filename);
-	FILE* checkf = fopen(fullpath, "r");
+	checkf = fopen(fullpath, "r");
 	if (!checkf) {
 		thr->cgpu->status = LIFE_SICK;
 		applog(LOG_ERR, "Error: Could not find epiphany kernel: %s", fullpath);

@@ -35,7 +35,7 @@
 
 extern void print_epi_ndevs(int *ndevs);
 
-#define GAP 16
+#define GAP 18
 #define SHARED_DRAM (0x01000000)
 extern struct device_drv epiphany_drv;
 

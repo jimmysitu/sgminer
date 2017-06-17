@@ -134,6 +134,11 @@ static inline int fsync (int fd)
  #include <e-hal.h>
 #endif
 
+#ifdef USE_TTY
+ #include <fcntl.h>
+ #include <termios.h>
+#endif
+
 #if (!defined(WIN32) && ((__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))) \
     || (defined(WIN32) && ((__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7)))
 #ifndef bswap_16
@@ -238,7 +243,9 @@ static inline int fsync (int fd)
  */
 #define DRIVER_PARSE_COMMANDS(DRIVER_ADD_COMMAND) \
   DRIVER_ADD_COMMAND(opencl)    \
-  DRIVER_ADD_COMMAND(epiphany)
+  DRIVER_ADD_COMMAND(epiphany)  \
+  DRIVER_ADD_COMMAND(tty)
+
 
 #define DRIVER_ENUM(X) DRIVER_##X,
 #define DRIVER_PROTOTYPE(X) struct device_drv X##_drv;
@@ -596,6 +603,11 @@ struct cgpu_info {
 	e_mem_t epiphany_emem;
 	unsigned epiphany_rows;
 	unsigned epiphany_cols;
+#endif
+
+#ifdef USE_TTY
+  int virtual_tty;
+  int tty_dev;
 #endif
 
   double diff1;
@@ -1214,6 +1226,7 @@ extern struct pool *add_pool(void);
 extern bool add_pool_details(struct pool *pool, bool live, char *url, char *user, char *pass, char *name, char *desc, char *profile, char *algo);
 
 #define MAX_EPIDEVICES 1
+#define MAX_TTYDEVICES 1
 #define MAX_GPUDEVICES 16
 #define MAX_DEVICES 4096
 
@@ -1244,6 +1257,10 @@ extern struct cgpu_info gpus[MAX_GPUDEVICES];
 
 #ifdef USE_EPIPHANY
 extern struct cgpu_info epis[MAX_EPIDEVICES];
+#endif
+
+#ifdef USE_TTY
+extern struct cgpu_info ttys[MAX_TTYDEVICES];
 #endif
 
 extern double total_secs;
@@ -1307,7 +1324,7 @@ typedef struct _dev_blk_ctx {
   cl_uint oneA, twoA, threeA, fourA, fiveA, sixA, sevenA;
 #endif
 
-#ifdef USE_EPIPHANY
+#if defined (USE_EPIPHANY) || defined (USE_TTY)
   uint ctx_a; uint ctx_b; uint ctx_c; uint ctx_d;
   uint ctx_e; uint ctx_f; uint ctx_g; uint ctx_h;
   uint cty_a; uint cty_b; uint cty_c; uint cty_d;
@@ -1333,6 +1350,7 @@ typedef struct _dev_blk_ctx {
   uint zeroA, zeroB;
   uint oneA, twoA, threeA, fourA, fiveA, sixA, sevenA;
 #endif
+
   struct work *work;
 } dev_blk_ctx;
 

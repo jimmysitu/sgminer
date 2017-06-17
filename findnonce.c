@@ -48,7 +48,7 @@ void precalc_hash(dev_blk_ctx *blk, uint32_t *state, uint32_t *data)
   cl_uint A, B, C, D, E, F, G, H;
 #endif
 
-#ifdef USE_EPIPHANY
+#if defined (USE_EPIPHANY) || defined (USE_TTY)
   uint A, B, C, D, E, F, G, H;
 #endif
 

@@ -1142,6 +1142,28 @@ static int queue_sia_kernel(e_epiphany_t *dev, struct _dev_blk_ctx *blk, unsigne
 }
 #endif
 
+#ifdef USE_TTY
+static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
+{
+
+  uint32_t target;
+  uint8_t data[80];
+  target = *(uint32_t *)(blk->work->device_target + 24);
+  flip80(data, blk->work->data);
+
+  // send work (data and target) to tty device
+  uint8_t header[3] = {0xAA, 0x00, 0x54};  // Send work command header
+  write(*dev, header, 3);
+  write(*dev, data, 80);
+  write(*dev, target, 4);
+
+  applog(LOG_DEBUG, "[TTY] Work data header: %016llX", *((uint64_t*)data));
+  applog(LOG_DEBUG, "[TTY] Work target: 0x%"PRIx32, target);
+  applog(LOG_DEBUG, "[TTY] Work is sent to tty device");
+  return 0;
+}
+#endif
+
 #ifdef USE_OPENCL
 static cl_int queue_lbry_kernel(struct __clState *clState, struct _dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
@@ -1276,6 +1298,13 @@ static algorithm_settings_t algos[] = {
 #endif
 
 #ifdef USE_EPIPHANY
+static algorithm_settings_t algos[] = {
+  { "sia",         ALGO_SIA,       "", 1, 1, 1, 0, 0, 0xFF, 0xFFFFULL, 0x0000FFFFUL, 0, 0, 0, sia_regenhash, NULL, NULL, queue_sia_kernel, sia_gen_hash, NULL },
+  { NULL, ALGO_UNK, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL }
+};
+#endif
+
+#ifdef USE_TTY
 static algorithm_settings_t algos[] = {
   { "sia",         ALGO_SIA,       "", 1, 1, 1, 0, 0, 0xFF, 0xFFFFULL, 0x0000FFFFUL, 0, 0, 0, sia_regenhash, NULL, NULL, queue_sia_kernel, sia_gen_hash, NULL },
   { NULL, ALGO_UNK, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL }

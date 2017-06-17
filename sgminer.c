@@ -60,6 +60,10 @@ char *curly = ":D";
 #include "driver-epiphany.h"
 #endif
 
+#ifdef USE_TTY
+#include "driver-tty.h"
+#endif
+
 #include "bench_block.h"
 
 #include "algorithm.h"
@@ -182,6 +186,10 @@ bool opt_opencl = false;
 
 #ifdef USE_EPIPHANY
 bool opt_epiphany = false;
+#endif
+
+#ifdef USE_TTY
+bool opt_tty = false;
 #endif
 
 #define QUIET (opt_quiet || opt_realquiet)
@@ -1858,6 +1866,11 @@ struct opt_table opt_config_table[] = {
   OPT_WITHOUT_ARG("--epiphany",
       opt_set_bool, &opt_epiphany,
       "Enable mining with Epiphany"),
+#endif
+#ifdef USE_TTY
+  OPT_WITHOUT_ARG("--tty",
+      opt_set_bool, &opt_tty,
+      "Enable mining with tty"),
 #endif
   OPT_ENDTABLE
 };
@@ -6363,7 +6376,7 @@ static void apply_initial_dev_settings(struct pool *pool)
   rd_lock(&mining_thr_lock);
 
   apply_switcher_options(options, pool);
-  
+
   //manually apply algorithm
   for (i = 0; i < nDevs; i++)
   {
@@ -6374,6 +6387,10 @@ static void apply_initial_dev_settings(struct pool *pool)
 #ifdef USE_EPIPHANY
     applog(LOG_DEBUG, "Set EPI %d to %s", i, isnull(pool->algorithm.name, ""));
     epis[i].algorithm = pool->algorithm;
+#endif
+#ifdef USE_TTY
+    applog(LOG_DEBUG, "Set TTY %d to %s", i, isnull(pool->algorithm.name, ""));
+    ttys[i].algorithm = pool->algorithm;
 #endif
   }
 
@@ -8832,6 +8849,10 @@ int main(int argc, char *argv[])
   memset(epis, 0, sizeof(epis));
 #endif
 
+#ifdef USE_TTY
+  memset(ttys, 0, sizeof(ttys));
+#endif
+
   /* parse config and command line */
   opt_register_table(opt_config_table,
          "Options for both config file and command line");
@@ -8887,7 +8908,7 @@ int main(int argc, char *argv[])
 
   gwsched_thr_id = 0;
 
-  //Detect GPUs and EPIs
+  //Detect GPUs, EPIs and TTYs
   /* Use the DRIVER_PARSE_COMMANDS macro to fill all the device_drvs */
   DRIVER_PARSE_COMMANDS(DRIVER_FILL_DEVICE_DRV)
 
@@ -8900,6 +8921,11 @@ int main(int argc, char *argv[])
 #ifdef USE_EPIPHANY
 	if (opt_epiphany) {
 		epiphany_drv.drv_detect();
+	}
+#endif
+#ifdef USE_TTY
+	if (opt_tty) {
+		tty_drv.drv_detect();
 	}
 #endif
 

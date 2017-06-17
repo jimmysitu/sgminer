@@ -219,6 +219,11 @@ AC_ARG_ENABLE([epiphany],
 	[epiphany=$enableval]
 	)
 
+AC_ARG_ENABLE([tty],
+	[AC_HELP_STRING([--disable-tty],[Override detection and disable building with tty device])],
+	[tty=$enableval]
+	)
+
 if test "x$opencl" != xno; then
   if test "$found_opencl" = 1; then
     has_opencl=true
@@ -264,7 +269,7 @@ AM_CONDITIONAL([HAS_OPENCL], [test x$has_opencl = xtrue])
 if test "x$epiphany" != xno; then
   if test "$found_epiphany" = 1; then
     has_epiphany=true
-	  AC_DEFINE([USE_EPIPHANY], [1], [Defined if Epiphany headers were found ])
+	AC_DEFINE([USE_EPIPHANY], [1], [Defined if Epiphany headers were found ])
   else
     has_epiphany=false
     EPIPHANY_FLAGS=""
@@ -276,6 +281,14 @@ else
   EPIPHANY_LIBS=""
 fi
 AM_CONDITIONAL([HAS_EPIPHANY], [test x$has_epiphany = xtrue])
+
+if test "x$tty" != xno; then
+  dnl TODO: Add tty test some where else
+  dnl if test "$found_tty" = 1; then
+  has_tty=true
+  AC_DEFINE([USE_TTY], [1], [Defined if tty headers were found ])
+fi 
+AM_CONDITIONAL([HAS_TTY], [test x$has_tty = xtrue])
 
 AC_ARG_ENABLE([git-version],
 	AS_HELP_STRING([--disable-git-version],
@@ -490,6 +503,12 @@ if test x$epiphany != xno; then
   fi
 else
 	echo "  Epiphany.............: Detection overrided. Epiphany mining support DISABLED"
+fi
+
+if test x$tty != xno; then
+	echo "  tty..................: FOUND. tty device mining support enabled"
+else
+	echo "  tty..................: Detection overrided. tty device mining support DISABLED"
 fi
 
 if test "x$adl" != xno; then

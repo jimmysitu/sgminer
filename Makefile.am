@@ -96,3 +96,6 @@ sgminer_LDADD 		+= @EPIPHANY_LIBS@
 sgminer_CPPFLAGS 	+= @EPIPHANY_FLAGS@
 endif # HAS_EPIPHANY
 
+if HAS_TTY
+sgminer_SOURCES 	+= driver-tty.h driver-tty.c
+endif # HAS_TTY

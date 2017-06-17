@@ -94,20 +94,22 @@ typedef struct _algorithm_t {
   void(*calc_midstate)(struct work *);
   void(*prepare_work)(struct _dev_blk_ctx *, uint32_t *, uint32_t *);
 
-#ifdef USE_OPENCL
+#if defined (USE_OPENCL)
   cl_int(*queue_kernel)(struct __clState *, struct _dev_blk_ctx *, cl_uint);
-#endif
 
-#ifdef USE_EPIPHANY
+#elif defined (USE_EPIPHANY)
   int(*queue_kernel)(e_epiphany_t *, struct _dev_blk_ctx *, unsigned, unsigned);
+
+#elif defined (USE_TTY)
+  int(*queue_kernel)(int *, struct _dev_blk_ctx *);
 #endif
 
   void(*gen_hash)(const unsigned char *, unsigned int, unsigned char *);
 
 #ifdef USE_OPENCL
-  void(*set_compile_options)(struct _build_kernel_data *, struct cgpu_info *, struct _algorithm_t *);
+  void (*set_compile_options)(struct _build_kernel_data *, struct cgpu_info *, struct _algorithm_t *);
 #else
-	void     (*set_compile_options)(struct cgpu_info *, struct _algorithm_t *);
+	void (*set_compile_options)(struct cgpu_info *, struct _algorithm_t *);
 #endif
 } algorithm_t;
 
@@ -143,6 +145,10 @@ typedef struct _algorithm_settings_t
 
 #ifdef USE_EPIPHANY
   int(*queue_kernel)(e_epiphany_t *, struct _dev_blk_ctx *, unsigned, unsigned);
+#endif
+
+#ifdef USE_TTY
+  int(*queue_kernel)(int *, struct _dev_blk_ctx *);
 #endif
 
   void     (*gen_hash)(const unsigned char *, unsigned int, unsigned char *);

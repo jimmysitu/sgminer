@@ -233,6 +233,12 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
 
   int64_t hashes;
 
+  status = thrdata->queue_kernel_parameters(dev, &work->blk);
+  if (unlikely(status != 0)) {
+    applog(LOG_ERR, "Error queue_kernel_parameters failed.");
+    return -1;
+  }
+
   thrdata->res[found_idx] = 0;
   uint8_t msg[7];
 
@@ -246,6 +252,8 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
       thrdata->res[found_idx]++;
       applog(LOG_DEBUG, "[TTY] tty device found something, nonce: 0x%08x", last_nonce);
       goto found_nonces; 
+    }else{
+      applog(LOG_DEBUG, "[TTY] tty device read %d btyes", rd);
     }
   }
 

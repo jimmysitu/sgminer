@@ -245,8 +245,8 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
   uint8_t msg[7];
 
   // Wait and check if any nonce is found
-  int cnt = 0;
-  while(cnt < 60){
+  int cnt = 10;
+  while(cnt > 0){
     // Read tty device to get the golden nonces
     int rd = read(*dev, msg, 7);
     if(7 == rd){
@@ -256,10 +256,14 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
       applog(LOG_DEBUG, "[TTY] tty device found something, nonce: 0x%08x", last_nonce);
       hashes = last_nonce;
       goto found_nonces;
-    }else{
-      applog(LOG_DEBUG, "[TTY] tty device read %d btyes", rd);
+    }else if(0 == rd){
+      applog(LOG_DEBUG, "[TTY] tty device read %d btyes, waiting %d", rd, cnt);
       hashes = hashes + 20000000;
-      cnt++;
+      cnt--;
+    }else{
+      applog(LOG_DEBUG, "[TTY] tty device read %d btyes, error", rd);
+      hashes = hashes + 20000000;
+      break;
     }
   }
 

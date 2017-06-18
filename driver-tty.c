@@ -83,15 +83,17 @@ static void tty_detect()
     applog(LOG_DEBUG, "loop test sent: 0x%02X, 0x%02X, 0x%02X, 0x%02X",
             loop_test[0], loop_test[1], loop_test[2], loop_test[3]);
   }else{
-    applog(LOG_DEBUG, "Loop test error");
+    applog(LOG_DEBUG, "Loop test error, wrote %d", t);
   }
+
+  sleep(2);
 
   t = read(*dev, loop_ack, 4);
   if(4 == t){
     applog(LOG_DEBUG, "loop ack got: 0x%02X, 0x%02X, 0x%02X, 0x%02X",
             loop_ack[0], loop_ack[1], loop_ack[2], loop_ack[3]);
   }else{
-    applog(LOG_DEBUG, "Loop ack error");
+    applog(LOG_DEBUG, "Loop ack error, read %d", t);
   }
 
   if(1 == (loop_ack[3] - loop_test[3])){

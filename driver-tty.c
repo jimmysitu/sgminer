@@ -43,7 +43,7 @@ static void tty_detect()
   int fd;
   int *dev = &fd;
   struct termios options;
-  fd = open(TTYDEVICE, O_RDWR | O_NOCTTY);
+  fd = open(TTYDEVICE, O_RDWR | O_NOCTTY | O_NDELAY);
   if(*dev == -1){
     applog(LOG_ERR, "Failed to open tty device");
 		return;
@@ -63,6 +63,14 @@ static void tty_detect()
   options.c_cflag &= ~CSIZE;
   options.c_cflag |= CS8;
 
+  // Misc setting
+  options.c_iflag &= ~(BRKINT | ICRNL | IMAXBEL);
+  options.c_oflag &= ~(OPOST | ONLCR);
+  options.c_lflag &= ~(ISIG | ICANON | IEXTEN | ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE);
+
+  options.c_cc[VMIN]  = 0;
+  options.c_cc[VTIME] = 10;
+
   // Setting configuration
   tcsetattr(*dev, TCSANOW, &options);
 
@@ -77,7 +85,7 @@ static void tty_detect()
   }else{
     applog(LOG_DEBUG, "Loop test error");
   }
-  
+
   t = read(*dev, loop_ack, 4);
   if(4 == t){
     applog(LOG_DEBUG, "loop ack got: 0x%02X, 0x%02X, 0x%02X, 0x%02X",
@@ -86,8 +94,10 @@ static void tty_detect()
     applog(LOG_DEBUG, "Loop ack error");
   }
 
-  if(1 == (loop_ack[4] - loop_test[4])){
+  if(1 == (loop_ack[3] - loop_test[3])){
     applog(LOG_INFO, "Loop test pass, detected tty device works fine");
+  }else{
+    applog(LOG_INFO, "Loop test fail, ack btye error\n");
   }
 
   // close tty device
@@ -128,7 +138,7 @@ static bool tty_thread_prepare(struct thr_info *thr)
 
   // Open and setting the tty device
   struct termios options;
-  *dev = open(TTYDEVICE, O_RDWR | O_NOCTTY);
+  *dev = open(TTYDEVICE, O_RDWR | O_NOCTTY | O_NDELAY);
   if(*dev == -1){
     applog(LOG_ERR, "Failed to open tty device");
 		return false;
@@ -147,6 +157,14 @@ static bool tty_thread_prepare(struct thr_info *thr)
   options.c_cflag &= ~CSTOPB;
   options.c_cflag &= ~CSIZE;
   options.c_cflag |= CS8;
+
+  // Misc setting
+  options.c_iflag &= ~(BRKINT | ICRNL | IMAXBEL);
+  options.c_oflag &= ~(OPOST | ONLCR);
+  options.c_lflag &= ~(ISIG | ICANON | IEXTEN | ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE);
+
+  options.c_cc[VMIN]  = 0;
+  options.c_cc[VTIME] = 10;
 
   // Setting configuration
   tcsetattr(*dev, TCSANOW, &options);

@@ -233,7 +233,7 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
 	uint32_t last_nonce;
 	int status;
 
-  int64_t hashes;
+  int64_t hashes = 0;
 
   status = thrdata->queue_kernel_parameters(dev, &work->blk);
   if (unlikely(status != 0)) {
@@ -254,9 +254,11 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
       thrdata->res[thrdata->res[found_idx]] = last_nonce;  // get golden nonce 
       thrdata->res[found_idx]++;
       applog(LOG_DEBUG, "[TTY] tty device found something, nonce: 0x%08x", last_nonce);
-      goto found_nonces; 
+      hashes = last_nonce;
+      goto found_nonces;
     }else{
       applog(LOG_DEBUG, "[TTY] tty device read %d btyes", rd);
+      hashes = hashes + 20000000;
       cnt++;
     }
   }
@@ -270,7 +272,6 @@ found_nonces:
     memset(thrdata->res, 0, buffersize);
   }
 
-  hashes = last_nonce;
 	return hashes;
 }
 

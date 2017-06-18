@@ -7186,6 +7186,8 @@ bool test_nonce(struct work *work, uint32_t nonce)
     diff1targ = work->pool->algorithm.diff1targ;
   }
 
+  applog(LOG_DEBUG, "test_nonce: hash = 0x%08x", le32toh(*hash_32));
+  applog(LOG_DEBUG, "test_nonce: diff1targ = 0x%08x", diff1targ);
   return (le32toh(*hash_32) <= diff1targ);
 }
 

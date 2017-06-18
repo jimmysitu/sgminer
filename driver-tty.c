@@ -48,6 +48,7 @@ static void tty_detect()
     applog(LOG_ERR, "Failed to open tty device");
 		return;
   }
+  fcntl(*dev, F_SETFL, 0);
 
   // Get current options
   tcgetattr(*dev, &options);
@@ -145,6 +146,7 @@ static bool tty_thread_prepare(struct thr_info *thr)
     applog(LOG_ERR, "Failed to open tty device");
 		return false;
   }
+  fcntl(*dev, F_SETFL, 0);
 
   // Get current options
   tcgetattr(*dev, &options);

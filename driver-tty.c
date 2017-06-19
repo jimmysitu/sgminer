@@ -250,7 +250,8 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
     // Read tty device to get the golden nonces
     int rd = read(*dev, msg, 7);
     if(7 == rd){
-      applog(LOG_DEBUG, "[TTY] tty device read %d btyes, header: 0x%02X, 0x%02X, 0x%02X", rd, cnt);
+      applog(LOG_DEBUG, "[TTY] tty device read %d btyes, header: 0x%02X, 0x%02X, 0x%02X", 
+             rd, msg[0], msg[1], msg[2]);
       last_nonce = *((uint32_t*)&msg[3]);
       thrdata->res[thrdata->res[found_idx]] = last_nonce;  // get golden nonce 
       thrdata->res[found_idx]++;

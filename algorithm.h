@@ -13,6 +13,11 @@
   #include <e-hal.h>
 #endif
 
+#ifdef USE_TTY
+  #include <fcntl.h>
+  #include <termios.h>
+#endif
+
 #include <inttypes.h>
 #include <stdbool.h>
 

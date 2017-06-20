@@ -1150,7 +1150,7 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
   uint8_t data[80];
   target = *(uint32_t *)(blk->work->device_target + 24);
   flip80(data, blk->work->data);
-  
+
   uint8_t loop_test[4] = {0xAA, 0x01, 0x01, 0x00};
   uint8_t loop_ack[4];
 

@@ -27,7 +27,7 @@
 
 #if defined(unix)
 	#include <errno.h>
-	#include <fcntl.h>
+  #include <fcntl.h>
 #endif
 
 extern void print_tty_ndevs(int *ndevs);

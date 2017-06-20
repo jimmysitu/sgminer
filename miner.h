@@ -135,6 +135,7 @@ static inline int fsync (int fd)
 #endif
 
 #ifdef USE_TTY
+ #include <unistd.h>
  #include <fcntl.h>
  #include <termios.h>
 #endif

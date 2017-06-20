@@ -1150,23 +1150,46 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
   uint8_t data[80];
   target = *(uint32_t *)(blk->work->device_target + 24);
   flip80(data, blk->work->data);
-
+  
+  uint64_t tmp[10] = {
+      0x5D02000000000000,
+      0x4C1530E8862513E8,
+      0x474B940BBABEEEEF,
+      0x6EA321EB235C2AE9,
+      0x0000000000000000,
+      0x00000000584AB401,
+      0x3E1D8DBFA05F73E8,
+      0xFD53C016085D46B4,
+      0xAE8FBD793A2C3DFF,
+      0xE285A7BB9EACC0A5
+  };
   // send work (data and target) to tty device
   uint8_t header[3] = {0xAA, 0x00, 0x54};  // Send work command header
   write(*dev, header, 3);
-  write(*dev, data, 80);
+  write(*dev, tmp, 80);
   write(*dev, target, 4);
 
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[0]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[1]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[2]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[3]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[4]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[5]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[6]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[7]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[8]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[9]);
+  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)tmp)[0]);
+  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)tmp)[1]);
+  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)tmp)[2]);
+  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)tmp)[3]);
+  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)tmp)[4]);
+  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)tmp)[5]);
+  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)tmp)[6]);
+  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)tmp)[7]);
+  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)tmp)[8]);
+  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)tmp)[9]);
+
+//  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[0]);
+//  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[1]);
+//  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[2]);
+//  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[3]);
+//  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[4]);
+//  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[5]);
+//  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[6]);
+//  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[7]);
+//  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[8]);
+//  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[9]);
   applog(LOG_DEBUG, "[TTY] Work target: 0x%"PRIx32, target);
   applog(LOG_DEBUG, "[TTY] Work is sent to tty device");
   return 0;

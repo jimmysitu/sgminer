@@ -1151,50 +1151,10 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
   target = *(uint32_t *)(blk->work->device_target + 24);
   flip80(data, blk->work->data);
 
-  uint8_t loop_test[4] = {0xAA, 0x01, 0x01, 0x00};
-  uint8_t loop_ack[4];
-
-  int t;
-  t = write(*dev, loop_test, 4);
-  if(4 == t){
-    applog(LOG_DEBUG, "loop test sent: 0x%02X, 0x%02X, 0x%02X, 0x%02X",
-            loop_test[0], loop_test[1], loop_test[2], loop_test[3]);
-  }else{
-    applog(LOG_DEBUG, "Loop test error, wrote %d", t);
-  }
-
-  sleep(2);
-
-  t = read(*dev, loop_ack, 4);
-  if(4 == t){
-    applog(LOG_DEBUG, "loop ack got: 0x%02X, 0x%02X, 0x%02X, 0x%02X",
-            loop_ack[0], loop_ack[1], loop_ack[2], loop_ack[3]);
-  }else{
-    applog(LOG_DEBUG, "Loop ack error, read %d", t);
-  }
-
-  if(1 == (loop_ack[3] - loop_test[3])){
-    applog(LOG_INFO, "Loop test pass, detected tty device works fine");
-  }else{
-    applog(LOG_INFO, "Loop test fail, ack btye error\n");
-  }
-  
-  uint64_t tmp[10] = {
-      0x5D02000000000000,
-      0x4C1530E8862513E8,
-      0x474B940BBABEEEEF,
-      0x6EA321EB235C2AE9,
-      0x0000000000000000,
-      0x00000000584AB401,
-      0x3E1D8DBFA05F73E8,
-      0xFD53C016085D46B4,
-      0xAE8FBD793A2C3DFF,
-      0xE285A7BB9EACC0A5
-  };
   // send work (data and target) to tty device
   uint8_t header[3] = {0xAA, 0x00, 0x54};  // Send work command header
   write(*dev, header, 3);
-  write(*dev, tmp, 80);
+  write(*dev, data, 80);
   write(*dev, &target, 4);
 
   applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)tmp)[0]);

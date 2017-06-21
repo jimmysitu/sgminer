@@ -278,6 +278,7 @@ found_nonces:
     memset(thrdata->res, 0, buffersize);
   }
 
+  work->blk.nonce += hashes;
 	return hashes;
 }
 

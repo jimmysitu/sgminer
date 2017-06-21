@@ -1151,6 +1151,7 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
   target = *(uint32_t *)(blk->work->device_target + 24);
   flip80(data, blk->work->data);
 
+  ((uint64_t*)data)[4] = blk->work->blk.nonce;
   // send work (data and target) to tty device
   uint8_t header[3] = {0xAA, 0x00, 0x54};  // Send work command header
   write(*dev, header, 3);

@@ -1136,7 +1136,7 @@ static int queue_sia_kernel(e_epiphany_t *dev, struct _dev_blk_ctx *blk, unsigne
   }
 
   applog(LOG_DEBUG, "[EPI] Work data header: %016llX", *((uint64_t*)data));
-  applog(LOG_DEBUG, "[EPI] Work target: 0x%"PRIx64, target);
+  applog(LOG_DEBUG, "[EPI] Work target: 0x%016"PRIx64, target);
   applog(LOG_DEBUG, "[EPI] Work is loaded into e-cores", i, j);
   return 0;
 }
@@ -1168,7 +1168,7 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
   applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[7]);
   applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[8]);
   applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[9]);
-  applog(LOG_DEBUG, "[TTY] Work target: 0x%08"PRIx64, target);
+  applog(LOG_DEBUG, "[TTY] Work target: 0x%016"PRIx64, target);
   applog(LOG_DEBUG, "[TTY] Work is sent to tty device");
   return 0;
 }

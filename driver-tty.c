@@ -240,6 +240,7 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
     applog(LOG_ERR, "Error queue_kernel_parameters failed.");
     return -1;
   }
+  applog(LOG_DEBUG, "[TTY] Started with offset 0x%08x.", first_nonce);
 
   thrdata->res[found_idx] = 0;
   uint8_t msg[7];

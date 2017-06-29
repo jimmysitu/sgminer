@@ -223,8 +223,8 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
   uint8_t start = 1;
   for(i = 0; i < rows; i++){
     for(j = 0; j < cols; j++){
-      e_write(dev, i, j, 0x7104, &first_nonce, sizeof(uint32_t));   // offset
-      e_write(dev, i, j, 0x710C, &start, sizeof(uint8_t));          // start
+      e_write(dev, i, j, 0x7108, &first_nonce, sizeof(uint32_t));   // offset
+      e_write(dev, i, j, 0x7110, &start, sizeof(uint8_t));          // start
     }
   }
   applog(LOG_DEBUG, "[EPI] Started %d*%d e-cores.", i, j);
@@ -236,7 +236,7 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
   while(working){
     for(i = 0; i < rows; i++){
       for(j = 0; j < cols; j++){
-        if(e_read(dev, i, j, 0x710C, &start, sizeof(uint8_t)) != sizeof(uint8_t))   // check if stop
+        if(e_read(dev, i, j, 0x7110, &start, sizeof(uint8_t)) != sizeof(uint8_t))   // check if stop
           applog(LOG_ERR, "[EPI] Failed to read start flag on e-core (%d,%d)", i, j);
 
         if(!start){
@@ -245,13 +245,13 @@ static int64_t epiphany_scanhash(struct thr_info *thr, struct work *work,
             applog(LOG_DEBUG, "[EPI] All job on e-core (%d, %d) done, working cores: %x", i, j, working);
           }
           uint8_t found = 0;
-          e_read(dev, i, j, 0x710D, &found, sizeof(uint8_t));         // check if found
-          e_read(dev, i, j, 0x7108, &last_nonce, sizeof(uint32_t));   // get last nonce before stop 
+          e_read(dev, i, j, 0x7111, &found, sizeof(uint8_t));         // check if found
+          e_read(dev, i, j, 0x710C, &last_nonce, sizeof(uint32_t));   // get last nonce before stop 
           if(found){
             thrdata->res[thrdata->res[found_idx]] = last_nonce;  // get golden nonce 
             thrdata->res[found_idx]++;
             applog(LOG_DEBUG, "[EPI] e-core (%d, %d) found something", i, j);
-            goto found_nonces; 
+            goto found_nonces;
           }
         }
       }

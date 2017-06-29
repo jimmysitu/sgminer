@@ -4695,7 +4695,7 @@ void zero_stats(void)
   for (i = 0; i < total_devices; ++i) {
     struct cgpu_info *cgpu = get_devices(i);
 
-    applog(LOG_DEBUG, "zero status of cgpu");
+    applog(LOG_DEBUG, "Zero status of cgpu");
 
     mutex_lock(&hash_lock);
     cgpu->total_mhashes = 0;

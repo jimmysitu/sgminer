@@ -76,7 +76,7 @@
 #ifdef DEBUG
 typedef struct _shared_buf_t {
 	uint8_t data[256];
-  uint32_t target;
+  uint64_t target;
   uint32_t offset;                // work start offset
   volatile uint32_t nonce;
   volatile uint8_t start;         // Start flag, set by host, clear by device
@@ -87,12 +87,12 @@ volatile shared_buf_t SharedBuf[16] SECTION("shared_dram"); // Share buffer with
 #endif
 
 volatile uint8_t  *data   = (void *) 0x7000;
-volatile uint32_t *target = (void *) 0x7100;
-volatile uint32_t *offset = (void *) 0x7104;
-volatile uint32_t *nonce  = (void *) 0x7108;
-volatile uint8_t  *start  = (void *) 0x710C;
-volatile uint8_t  *found  = (void *) 0x710D;
-volatile uint64_t *dbg  = (void *) 0x7110;
+volatile uint64_t *target = (void *) 0x7100;
+volatile uint32_t *offset = (void *) 0x7108;
+volatile uint32_t *nonce  = (void *) 0x710C;
+volatile uint8_t  *start  = (void *) 0x7110;
+volatile uint8_t  *found  = (void *) 0x7111;
+volatile uint64_t *dbg  = (void *) 0x7120;
 
 const uint8_t blake2b_sigma[12][16] = {
 	{ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15 } ,

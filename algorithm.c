@@ -1118,9 +1118,9 @@ static cl_int queue_sia_kernel(struct __clState *clState, struct _dev_blk_ctx *b
 static int queue_sia_kernel(e_epiphany_t *dev, struct _dev_blk_ctx *blk, unsigned rows, unsigned cols)
 {
 
-  uint32_t target;
+  uint64_t target;
   uint8_t data[80];
-  target = *(uint32_t *)(blk->work->device_target + 24);
+  target = *(uint64_t *)(blk->work->device_target + 24);
   flip80(data, blk->work->data);
   uint8_t start = 0;
   uint8_t found = 0;
@@ -1129,14 +1129,14 @@ static int queue_sia_kernel(e_epiphany_t *dev, struct _dev_blk_ctx *blk, unsigne
   for(i = 0; i < rows; i++){
     for(j = 0; i < cols; i++){
       e_write(dev, i, j, 0x7000, &data, 80*sizeof(uint8_t));        // data
-      e_write(dev, i, j, 0x7100, &target, sizeof(uint32_t));        // target
-      e_write(dev, i, j, 0x710C, &start, sizeof(uint8_t));          // start
-      e_write(dev, i, j, 0x710D, &found, sizeof(uint8_t));          // found
+      e_write(dev, i, j, 0x7100, &target, sizeof(uint64_t));        // target
+      e_write(dev, i, j, 0x7110, &start, sizeof(uint8_t));          // start
+      e_write(dev, i, j, 0x7111, &found, sizeof(uint8_t));          // found
     }
   }
 
   applog(LOG_DEBUG, "[EPI] Work data header: %016llX", *((uint64_t*)data));
-  applog(LOG_DEBUG, "[EPI] Work target: 0x%"PRIx32, target);
+  applog(LOG_DEBUG, "[EPI] Work target: 0x%"PRIx64, target);
   applog(LOG_DEBUG, "[EPI] Work is loaded into e-cores", i, j);
   return 0;
 }
@@ -1146,9 +1146,9 @@ static int queue_sia_kernel(e_epiphany_t *dev, struct _dev_blk_ctx *blk, unsigne
 static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
 {
 
-  uint32_t target;
+  uint64_t target;
   uint8_t data[80];
-  target = *(uint32_t *)(blk->work->device_target + 24);
+  target = *(uint64_t *)(blk->work->device_target + 24);
   flip80(data, blk->work->data);
 
   ((uint64_t*)data)[4] = blk->work->blk.nonce;
@@ -1156,7 +1156,7 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
   uint8_t header[3] = {0xAA, 0x00, 0x54};  // Send work command header
   write(*dev, header, 3);
   write(*dev, data, 80);
-  write(*dev, &target, 4);
+  write(*dev, &target, 8);
 
   applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[0]);
   applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[1]);
@@ -1168,7 +1168,7 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
   applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[7]);
   applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[8]);
   applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[9]);
-  applog(LOG_DEBUG, "[TTY] Work target: 0x%"PRIx32, target);
+  applog(LOG_DEBUG, "[TTY] Work target: 0x08%"PRIx64, target);
   applog(LOG_DEBUG, "[TTY] Work is sent to tty device");
   return 0;
 }

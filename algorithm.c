@@ -1153,7 +1153,7 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
 
   ((uint64_t*)data)[4] = blk->work->blk.nonce;
   // send work (data and target) to tty device
-  uint8_t header[3] = {0xAA, 0x00, 0x54};  // Send work command header
+  uint8_t header[3] = {0xAA, 0x00, 0x58};  // Send work command header
   write(*dev, header, 3);
   write(*dev, data, 80);
   write(*dev, &target, 8);

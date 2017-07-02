@@ -258,8 +258,8 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
       thrdata->res[found_idx]++;
       applog(LOG_DEBUG, "[TTY] tty device found something, nonce: 0x%08x", last_nonce);
 
-      flip32(&last_nonce, &last_nonce)
-        hashes = last_nonce - first_nonce;
+      flip32(&last_nonce, &last_nonce);
+      hashes = last_nonce - first_nonce;
       goto found_nonces;
 
     }else if(0 == rd){

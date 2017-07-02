@@ -118,6 +118,7 @@ static void tty_detect()
 	cgpu->threads = 1;
 
   cgpu->virtual_tty = 0;
+  cgpu->hw_errors = 0;
   cgpu->algorithm = default_profile.algorithm;
 	add_cgpu(cgpu);
 

@@ -6735,8 +6735,10 @@ static void get_work_prepare_thread(struct thr_info *mythr, struct work *work)
   applog(LOG_DEBUG, "[THR%d] get_work_prepare_thread", mythr->id);
 
   //if switcher is disabled
-  if(opt_switchmode == SWITCH_OFF)
+  if(opt_switchmode == SWITCH_OFF){
+    applog(LOG_DEBUG, "[THR%d] get_work_prepare_thread done, since switch off", mythr->id);
     return;
+  }
 
   pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
   mutex_lock(&algo_switch_lock);
@@ -6823,6 +6825,7 @@ static void get_work_prepare_thread(struct thr_info *mythr, struct work *work)
 
     // Reset stats (e.g. for working_diff to be set properly in hash_sole_work)
     zero_stats();
+    applog(LOG_DEBUG, "zero_stats done");
 
     //apply switcher options
     apply_switcher_options(pool_switch_options, work->pool);

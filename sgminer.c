@@ -2750,6 +2750,8 @@ static void curses_print_devstatus(struct cgpu_info *cgpu, int count)
   cgpu->drv->get_statline(logline, sizeof(logline), cgpu);
   cg_wprintw(statuswin, "%s", logline);
 
+  applog(LOG_DEBUG, "cgpu->hw_errors: %d", cgpu->hw_errors);
+
   wclrtoeol(statuswin);
 }
 #endif

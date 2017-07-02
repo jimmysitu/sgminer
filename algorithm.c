@@ -1158,16 +1158,16 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
   write(*dev, data, 80);
   write(*dev, &target, 8);
 
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[0]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[1]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[2]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[3]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[4]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[5]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[6]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[7]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[8]);
-  applog(LOG_DEBUG, "[TTY] Work data: %016llX", ((uint64_t*)data)[9]);
+  applog(LOG_DEBUG, "[TTY] Work data[0]: %016llX", ((uint64_t*)data)[0]);
+  applog(LOG_DEBUG, "[TTY] Work data[1]: %016llX", ((uint64_t*)data)[1]);
+  applog(LOG_DEBUG, "[TTY] Work data[2]: %016llX", ((uint64_t*)data)[2]);
+  applog(LOG_DEBUG, "[TTY] Work data[3]: %016llX", ((uint64_t*)data)[3]);
+  applog(LOG_DEBUG, "[TTY] Work data[4]: %016llX", ((uint64_t*)data)[4]);
+  applog(LOG_DEBUG, "[TTY] Work data[5]: %016llX", ((uint64_t*)data)[5]);
+  applog(LOG_DEBUG, "[TTY] Work data[6]: %016llX", ((uint64_t*)data)[6]);
+  applog(LOG_DEBUG, "[TTY] Work data[7]: %016llX", ((uint64_t*)data)[7]);
+  applog(LOG_DEBUG, "[TTY] Work data[8]: %016llX", ((uint64_t*)data)[8]);
+  applog(LOG_DEBUG, "[TTY] Work data[9]: %016llX", ((uint64_t*)data)[9]);
   applog(LOG_DEBUG, "[TTY] Work target: 0x%016"PRIx64, target);
   applog(LOG_DEBUG, "[TTY] Work is sent to tty device");
   return 0;

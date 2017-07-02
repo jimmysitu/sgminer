@@ -253,12 +253,13 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
     if(7 == rd){
       applog(LOG_DEBUG, "[TTY] tty device read %d btyes, header: 0x%02X, 0x%02X, 0x%02X", 
              rd, msg[0], msg[1], msg[2]);
-      last_nonce = *((uint32_t*)&msg[3]);
-      thrdata->res[thrdata->res[found_idx]] = last_nonce;  // get golden nonce 
+      uint32_t nonce = *((uint32_t*)&msg[3]);
+      thrdata->res[thrdata->res[found_idx]] = nonce;  // get golden nonce 
       thrdata->res[found_idx]++;
       applog(LOG_DEBUG, "[TTY] tty device found something, nonce: 0x%08x", last_nonce);
 
-      flip32(&last_nonce, &last_nonce);
+      last_nonce = swab32(nonce);
+      
       hashes = last_nonce - first_nonce;
       goto found_nonces;
 

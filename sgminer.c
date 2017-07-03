@@ -7296,6 +7296,7 @@ static void hash_sole_work(struct thr_info *mythr)
   sdiff.tv_sec = sdiff.tv_usec = 0;
   cgtime(&tv_lastupdate);
 
+  applog(LOG_DEBUG, "Start of hash_sole_work");
   while (likely(!cgpu->shutdown)) {
     struct work *work = get_work(mythr, thr_id);
     int64_t hashes;
@@ -7362,6 +7363,7 @@ static void hash_sole_work(struct thr_info *mythr)
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 
       thread_reportin(mythr);
+      applog(LOG_DEBUG, "Calling drv->scanhash() to find the nonce",
       hashes = drv->scanhash(mythr, work, work->blk.nonce + max_nonce);
       thread_reportout(mythr);
 
@@ -7440,8 +7442,10 @@ static void hash_sole_work(struct thr_info *mythr)
 
       sdiff.tv_sec = sdiff.tv_usec = 0;
     } while (!abandon_work(work, &wdiff, cgpu->max_hashes));
+    applog(LOG_DEBUG, "hash_sole_work: abandon_work, out of the do loop");
     free_work(work);
   }
+  applog(LOG_DEBUG, "hash_sole_work: shutdown, out of the while loop");
   cgpu->deven = DEV_DISABLED;
 }
 

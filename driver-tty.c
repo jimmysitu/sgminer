@@ -285,6 +285,7 @@ found_nonces:
   }
 
   work->blk.nonce += hashes;
+  work->blk.nonce += 1;
 	return hashes;
 }
 

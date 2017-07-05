@@ -1149,7 +1149,7 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
   uint64_t target;
   uint8_t data[80];
   
-  applog(LOG_ERR, "[TTY] queue_sia_kernel started");
+  applog(LOG_DEBUG, "[TTY] queue_sia_kernel started");
   target = *(uint64_t *)(blk->work->device_target + 24);
   flip80(data, blk->work->data);
 
@@ -1157,16 +1157,19 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
   // send work (data and target) to tty device
   uint8_t header[3] = {0xAA, 0x00, 0x58};  // Send work command header
   
+  applog(LOG_DEBUG, "[TTY] queue_sia_kernel: writing header");
   if(-1 == write(*dev, header, 3)){
     applog(LOG_ERR, "[TTY] Write header error");
     return -1;
   }
   
+  applog(LOG_DEBUG, "[TTY] queue_sia_kernel: writing data");
   if(-1 == write(*dev, data, 80)){
     applog(LOG_ERR, "[TTY] Write data error");
     return -1;
   }
-
+  
+  applog(LOG_DEBUG, "[TTY] queue_sia_kernel: writing target");
   if(-1 == write(*dev, &target, 8)){
     applog(LOG_ERR, "[TTY] Write data error");
     return -1;

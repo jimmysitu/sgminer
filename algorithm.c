@@ -1148,6 +1148,8 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
 
   uint64_t target;
   uint8_t data[80];
+  
+  applog(LOG_ERR, "[TTY] queue_sia_kernel started");
   target = *(uint64_t *)(blk->work->device_target + 24);
   flip80(data, blk->work->data);
 

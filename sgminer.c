@@ -8610,7 +8610,7 @@ static void restart_mining_threads(unsigned int new_n_threads)
     algo_switch_n = 0;
     mutex_unlock(&algo_switch_wait_lock);
 
-    applog(LOG_DEBUG, "Shutdown OpenCL contexts...");
+    applog(LOG_DEBUG, "Shutdown device contexts...");
     rd_lock(&mining_thr_lock);
     for (i = 0; i < mining_threads; i++)
     {

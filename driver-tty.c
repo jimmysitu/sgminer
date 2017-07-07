@@ -17,6 +17,12 @@
 extern int ttyr_thr_id;
 
 /* TODO: cleanup externals ********************/
+
+#ifdef HAVE_CURSES
+extern WINDOW *mainwin, *statuswin, *logwin;
+extern void enable_curses(void);
+#endif
+
 extern void submit_work_async(struct work *work_in, struct timeval *tv_work_found);
 extern int dev_from_id(int thr_id);
 extern void *miner_thread(void *userdata);
@@ -298,12 +304,28 @@ static bool tty_thread_prepare(struct thr_info *thr)
   // Open and setting the tty device
   ttyStates[i] = initTty(virtual_tty, name, sizeof(name), &cgpu->algorithm);
   if (!ttyStates[i]){
+#ifdef HAVE_CURSES
+    if (use_curses)
+      enable_curses();
+#endif
     applog(LOG_ERR, "Failed to init TTY thread %d, disabling device %d", i, tty);
+#ifdef HAVE_CURSES
+      char *buf;
+      if (use_curses) {
+        buf = curses_input("Press enter to continue");
+        if (buf)
+          free(buf);
+      }
+#endif
     cgpu->deven = DEV_DISABLED;
     cgpu->status = LIFE_NOSTART;
     return false;
   }
 
+  if (!cgpu->name)
+    cgpu->name = strdup(name);
+
+  applog(LOG_INFO, "initCl() finished. Found %s", name);
   cgtime(&now);
   get_datestamp(cgpu->init, sizeof(cgpu->init), &now);
 

@@ -9153,7 +9153,7 @@ int main(int argc, char *argv[])
   /* Create reinit gpu thread */
 #ifdef USE_OPENCL
   if (opt_opencl){
-    ttyr_thr_id = 4;
+    gpur_thr_id = 4;
     thr = &control_thr[gpur_thr_id];
     thr->q = tq_new();
     if (!thr->q)
@@ -9174,6 +9174,7 @@ int main(int argc, char *argv[])
       quit(1, "reinit_tty thread create failed");
   }
 #endif
+
   /* Create API socket thread */
   api_thr_id = 5;
   thr = &control_thr[api_thr_id];

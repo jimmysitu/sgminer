@@ -144,7 +144,7 @@ select_cgpu:
       continue;
 
     thr->rolling = thr->cgpu->rolling = 0;
-    /* Reports the last time we tried to revive a sick GPU */
+    /* Reports the last time we tried to revive a sick TTY */
     cgtime(&thr->sick);
     if (!pthread_kill(thr->pth, 0)) {
       applog(LOG_WARNING, "Thread %d still exists, killing it off", thr_id);
@@ -309,6 +309,7 @@ static bool tty_thread_prepare(struct thr_info *thr)
   struct cgpu_info *cgpu = thr->cgpu;
 
   int i = thr->id;
+  static bool failmessage = false;
   int tty = cgpu->device_id;
   int virtual_tty = cgpu->virtual_tty;
 	int *dev = &cgpu->tty_dev;
@@ -328,6 +329,10 @@ static bool tty_thread_prepare(struct thr_info *thr)
       enable_curses();
 #endif
     applog(LOG_ERR, "Failed to init TTY thread %d, disabling device %d", i, tty);
+    if (!failmessage) {
+      applog(LOG_ERR, "Restarting the GPU from the menu will not fix this.");
+      applog(LOG_ERR, "Re-check your configuration and try restarting.");
+      failmessage = true;
 #ifdef HAVE_CURSES
       char *buf;
       if (use_curses) {
@@ -336,15 +341,18 @@ static bool tty_thread_prepare(struct thr_info *thr)
           free(buf);
       }
 #endif
+    }
     cgpu->deven = DEV_DISABLED;
     cgpu->status = LIFE_NOSTART;
+
+    dev_error(cgpu, REASON_DEV_NOSTART);
     return false;
   }
 
   if (!cgpu->name)
     cgpu->name = strdup(name);
 
-  applog(LOG_INFO, "initCl() finished. Found %s", name);
+  applog(LOG_INFO, "initTty() finished. Found %s", name);
   cgtime(&now);
   get_datestamp(cgpu->init, sizeof(cgpu->init), &now);
 

@@ -18,6 +18,7 @@
 /* TODO: cleanup externals ********************/
 extern void submit_work_async(struct work *work_in, struct timeval *tv_work_found);
 extern int dev_from_id(int thr_id);
+extern void *miner_thread(void *userdata);
 
 void print_tty_ndevs(int *ndevs)
 {
@@ -34,8 +35,152 @@ struct tty_thread_data {
   uint32_t *res;
 };
 
+static bool ttyStates[MAX_TTYDEVICES];
+
 #define BAUDRATE B115200
 #define TTYDEVICE "/dev/ttyPS1"
+
+bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorithm)
+{
+	struct cgpu_info *cgpu = &ttys[tty];
+	int *dev = &cgpu->tty_dev;
+  
+  struct termios options;
+  *dev = open(TTYDEVICE, O_RDWR | O_NOCTTY | O_NDELAY);
+  if(*dev == -1){
+    applog(LOG_ERR, "Failed to open tty device");
+		return false;
+  }
+  fcntl(*dev, F_SETFL, 0);
+
+  // Get current options
+  tcgetattr(*dev, &options);
+
+  // Setting baudrate
+  cfsetispeed(&options, BAUDRATE);
+  cfsetospeed(&options, BAUDRATE);
+
+  // Enable the receiver and set local mode, 8N1
+  options.c_cflag |= (CLOCAL | CREAD);
+  options.c_cflag &= ~PARENB;
+  options.c_cflag &= ~CSTOPB;
+  options.c_cflag &= ~CSIZE;
+  options.c_cflag |= CS8;
+
+  // Misc setting
+  options.c_iflag &= ~(BRKINT | ICRNL | IMAXBEL);
+  options.c_oflag &= ~(OPOST | ONLCR);
+  options.c_lflag &= ~(ISIG | ICANON | IEXTEN | ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE);
+
+  options.c_cc[VMIN]  = 0;
+  options.c_cc[VTIME] = 10;
+
+  // Setting configuration
+  tcsetattr(*dev, TCSANOW, &options);
+
+  return true;
+
+}
+
+/* We have only one thread that ever re-initialises TTYs, thus if any GPU
+ * init command fails due to a completely wedged TTY, the thread will never
+ * return, unable to harm other GPUs. If it does return, it means we only had
+ * a soft failure and then the reinit_tty thread is ready to tackle another
+ * TTY */
+void *reinit_tty(void *userdata)
+{
+  struct thr_info *mythr = (struct thr_info *)userdata;
+  struct cgpu_info *cgpu;
+  struct thr_info *thr;
+  struct timeval now;
+  char name[256];
+  int thr_id;
+  int tty;
+
+  pthread_detach(pthread_self());
+
+select_cgpu:
+  cgpu = (struct cgpu_info *)tq_pop(mythr->q, NULL);
+  if (!cgpu)
+    goto out;
+
+  tty = cgpu->device_id;
+
+  rd_lock(&mining_thr_lock);
+  for (thr_id = 0; thr_id < mining_threads; ++thr_id) {
+    thr = mining_thr[thr_id];
+    cgpu = thr->cgpu;
+    if (cgpu->drv->drv_id != DRIVER_tty)
+      continue;
+    if (dev_from_id(thr_id) != tty)
+      continue;
+
+    thr->rolling = thr->cgpu->rolling = 0;
+    /* Reports the last time we tried to revive a sick GPU */
+    cgtime(&thr->sick);
+    if (!pthread_kill(thr->pth, 0)) {
+      applog(LOG_WARNING, "Thread %d still exists, killing it off", thr_id);
+      cg_completion_timeout(&thr_info_cancel_join, thr, 5000);
+      thr->cgpu->drv->thread_shutdown(thr);
+    }
+    else
+      applog(LOG_WARNING, "Thread %d no longer exists", thr_id);
+  }
+  rd_unlock(&mining_thr_lock);
+
+  rd_lock(&mining_thr_lock);
+  for (thr_id = 0; thr_id < mining_threads; ++thr_id) {
+    int virtual_tty;
+
+    thr = mining_thr[thr_id];
+    cgpu = thr->cgpu;
+    if (cgpu->drv->drv_id != DRIVER_tty)
+      continue;
+    if (dev_from_id(thr_id) != tty)
+      continue;
+
+    virtual_tty = cgpu->virtual_tty;
+
+    thr->q = tq_new();
+    if (!thr->q)
+      quit(1, "Failed to tq_new in reinit_gpu");
+
+    applog(LOG_INFO, "Reinit TTY thread %d", thr_id);
+    ttyStates[thr_id] = initTty(virtual_tty, name, sizeof(name), &cgpu->algorithm);
+    if (!ttyStates[thr_id]) {
+      applog(LOG_ERR, "Failed to reinit TTY thread %d", thr_id);
+      goto select_cgpu;
+    }
+    applog(LOG_INFO, "initTty() finished. Found %s", name);
+
+    if (unlikely(thr_info_create(thr, NULL, miner_thread, thr))) {
+      applog(LOG_ERR, "thread %d create failed", thr_id);
+      return NULL;
+    }
+    applog(LOG_WARNING, "Thread %d restarted", thr_id);
+  }
+  rd_unlock(&mining_thr_lock);
+
+  cgtime(&now);
+  get_datestamp(cgpu->init, sizeof(cgpu->init), &now);
+
+  rd_lock(&mining_thr_lock);
+  for (thr_id = 0; thr_id < mining_threads; ++thr_id) {
+    thr = mining_thr[thr_id];
+    cgpu = thr->cgpu;
+    if (cgpu->drv->drv_id != DRIVER_tty)
+      continue;
+    if (dev_from_id(thr_id) != tty)
+      continue;
+
+    cgsem_post(&thr->sem);
+  }
+  rd_unlock(&mining_thr_lock);
+
+  goto select_cgpu;
+out:
+  return NULL;
+}
 
 static void tty_detect()
 {
@@ -126,6 +271,7 @@ static void tty_detect()
 
 static bool tty_thread_prepare(struct thr_info *thr)
 {
+  char name[256];
   struct timeval now;
   struct cgpu_info *cgpu = thr->cgpu;
 
@@ -141,38 +287,13 @@ static bool tty_thread_prepare(struct thr_info *thr)
 	char compiler_cmd[512];
 
   // Open and setting the tty device
-  struct termios options;
-  *dev = open(TTYDEVICE, O_RDWR | O_NOCTTY | O_NDELAY);
-  if(*dev == -1){
-    applog(LOG_ERR, "Failed to open tty device");
-		return false;
+  ttyStates[i] = initTty(virtual_tty, name, sizeof(name), &cgpu->algorithm);
+  if (!ttyStates[i]){
+    applog(LOG_ERR, "Failed to init TTY thread %d, disabling device %d", i, tty);
+    cgpu->deven = DEV_DISABLED;
+    cgpu->status = LIFE_NOSTART;
+    return false;
   }
-  fcntl(*dev, F_SETFL, 0);
-
-  // Get current options
-  tcgetattr(*dev, &options);
-
-  // Setting baudrate
-  cfsetispeed(&options, BAUDRATE);
-  cfsetospeed(&options, BAUDRATE);
-
-  // Enable the receiver and set local mode, 8N1
-  options.c_cflag |= (CLOCAL | CREAD);
-  options.c_cflag &= ~PARENB;
-  options.c_cflag &= ~CSTOPB;
-  options.c_cflag &= ~CSIZE;
-  options.c_cflag |= CS8;
-
-  // Misc setting
-  options.c_iflag &= ~(BRKINT | ICRNL | IMAXBEL);
-  options.c_oflag &= ~(OPOST | ONLCR);
-  options.c_lflag &= ~(ISIG | ICANON | IEXTEN | ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE);
-
-  options.c_cc[VMIN]  = 0;
-  options.c_cc[VTIME] = 10;
-
-  // Setting configuration
-  tcsetattr(*dev, TCSANOW, &options);
 
   cgtime(&now);
   get_datestamp(cgpu->init, sizeof(cgpu->init), &now);

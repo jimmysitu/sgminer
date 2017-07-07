@@ -31,6 +31,7 @@
 #endif
 
 extern void print_tty_ndevs(int *ndevs);
+extern void *reinit_tty(void *userdata);
 
 extern struct device_drv tty_drv;
 

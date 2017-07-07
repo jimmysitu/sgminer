@@ -203,6 +203,7 @@ static int watchdog_thr_id;
 static int input_thr_id;
 #endif
 int gpur_thr_id;
+int ttyr_thr_id;
 static int api_thr_id;
 static int total_control_threads;
 
@@ -9152,7 +9153,7 @@ int main(int argc, char *argv[])
   /* Create reinit gpu thread */
 #ifdef USE_OPENCL
   if (opt_opencl){
-    gpur_thr_id = 4;
+    ttyr_thr_id = 4;
     thr = &control_thr[gpur_thr_id];
     thr->q = tq_new();
     if (!thr->q)
@@ -9162,6 +9163,17 @@ int main(int argc, char *argv[])
   }
 #endif
 
+#ifdef USE_TTY
+  if (opt_tty){
+    ttyr_thr_id = 4;
+    thr = &control_thr[ttyr_thr_id];
+    thr->q = tq_new();
+    if (!thr->q)
+      quit(1, "tq_new failed for ttyr_thr_id");
+    if (thr_info_create(thr, NULL, reinit_tty, thr))
+      quit(1, "reinit_tty thread create failed");
+  }
+#endif
   /* Create API socket thread */
   api_thr_id = 5;
   thr = &control_thr[api_thr_id];

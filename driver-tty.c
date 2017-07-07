@@ -70,6 +70,7 @@ bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorit
 	int *dev = &cgpu->tty_dev;
   
   struct termios options;
+
   *dev = open(TTYDEVICE, O_RDWR | O_NOCTTY | O_NDELAY);
   if(*dev == -1){
     applog(LOG_ERR, "Failed to open tty device");
@@ -102,6 +103,7 @@ bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorit
   // Setting configuration
   tcsetattr(*dev, TCSANOW, &options);
 
+  strcpy(name, TTYDEVICE);
   return true;
 
 }

@@ -98,9 +98,10 @@ void *reinit_tty(void *userdata)
   int tty;
 
   pthread_detach(pthread_self());
+  
+  strcpy(name, "");
 
 select_cgpu:
-  strcpy(name, "");
   cgpu = (struct cgpu_info *)tq_pop(mythr->q, NULL);
   if (!cgpu)
     goto out;
@@ -181,6 +182,11 @@ select_cgpu:
   goto select_cgpu;
 out:
   return NULL;
+}
+
+static void reinit_tty_device(struct cgpu_info *tty)
+{
+  tq_push(control_thr[ttyr_thr_id].q, tty);
 }
 
 static void tty_detect()
@@ -431,7 +437,7 @@ struct device_drv tty_drv = {
 	/*.dname = */               "tty",
 	/*.name = */                "TTY",
 	/*.drv_detect = */          tty_detect,
-  /*.reinit_device = */       NULL,
+  /*.reinit_device = */       reinit_tty_device,
   /*.get_statline_before = */ NULL,
   /*.get_statline = */        NULL,
   /*.api_data = */            NULL,

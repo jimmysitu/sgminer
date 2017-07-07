@@ -6,6 +6,23 @@
  * Software Foundation; either version 3 of the License, or (at your option)
  * any later version.  See COPYING for more details.
  */
+#include "config.h"
+
+#ifdef HAVE_CURSES
+#include <curses.h>
+#endif
+
+#include <string.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <signal.h>
+#include <sys/types.h>
+
+#ifndef WIN32
+#include <sys/resource.h>
+#endif
+#include <ccan/opt/opt.h>
+
 
 #include "compat.h"
 #include "miner.h"

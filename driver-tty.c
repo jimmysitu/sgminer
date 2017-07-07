@@ -100,6 +100,7 @@ void *reinit_tty(void *userdata)
   pthread_detach(pthread_self());
 
 select_cgpu:
+  strcpy(name, "");
   cgpu = (struct cgpu_info *)tq_pop(mythr->q, NULL);
   if (!cgpu)
     goto out;

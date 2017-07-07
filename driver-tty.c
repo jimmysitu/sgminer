@@ -14,6 +14,7 @@
 #include "findnonce.h"
 #include "util.h"
 
+extern int ttyr_thr_id;
 
 /* TODO: cleanup externals ********************/
 extern void submit_work_async(struct work *work_in, struct timeval *tv_work_found);

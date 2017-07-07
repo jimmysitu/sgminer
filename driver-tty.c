@@ -286,6 +286,7 @@ static bool tty_thread_prepare(struct thr_info *thr)
 	char kernel_filename[256];
 	char compiler_cmd[512];
 
+  strcpy(name, "");
   // Open and setting the tty device
   ttyStates[i] = initTty(virtual_tty, name, sizeof(name), &cgpu->algorithm);
   if (!ttyStates[i]){

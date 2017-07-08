@@ -252,7 +252,8 @@ static void tty_detect()
   options.c_cc[VTIME] = 10;
 
   // Setting configuration
-  tcsetattr(*dev, TCSANOW, &options);
+  //tcsetattr(*dev, TCSANOW, &options);
+  tcsetattr(*dev, TCSAFLUSH, &options);
 
   uint8_t loop_test[4] = {0xAA, 0x01, 0x01, 0x00};
   uint8_t loop_ack[4];

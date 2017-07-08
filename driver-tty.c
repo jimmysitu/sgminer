@@ -276,6 +276,8 @@ static void tty_detect()
     applog(LOG_ERR, "Loop test fail, ack btye error\n");
   }
 
+  applog(LOG_DEBUG, "Detected tty device %d", *dev);
+  
   // close tty device
   close(*dev);
 
@@ -294,8 +296,6 @@ static void tty_detect()
   cgpu->hw_errors = 0;
   cgpu->algorithm = default_profile.algorithm;
 	add_cgpu(cgpu);
-  
-  applog(LOG_DEBUG, "Detected tty device");
 
 }
 

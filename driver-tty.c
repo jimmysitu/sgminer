@@ -270,9 +270,7 @@ static void tty_detect()
     applog(LOG_DEBUG, "Loop ack error, read %d", t);
   }
 
-  if(1 == (loop_ack[3] - loop_test[3])){
-    applog(LOG_INFO, "Loop test pass, detected tty device works fine");
-  }else{
+  if(1 != (loop_ack[3] - loop_test[3])){
     applog(LOG_INFO, "Loop test fail, ack btye error\n");
   }
 

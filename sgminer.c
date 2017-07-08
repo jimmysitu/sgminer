@@ -2635,45 +2635,45 @@ static void curses_print_status(void)
   struct pool *pool = current_pool();
   unsigned short int line = 0;
 
-  wattron(statuswin, A_BOLD);
-  cg_mvwprintw(statuswin, line, 0, PACKAGE " " CGMINER_VERSION " - Started: %s", datestamp);
-  curses_print_uptime(&launch_time);
-  wattroff(statuswin, A_BOLD);
-
-  mvwhline(statuswin, ++line, 0, '-', 80);
-
-  cg_mvwprintw(statuswin, ++line, 0, "%s", statusline);
-  wclrtoeol(statuswin);
-
-  cg_mvwprintw(statuswin, ++line, 0, "ST: %d  SS: %d  NB: %d  LW: %d  GF: %d  RF: %d",
-    total_staged(), total_stale, new_blocks,
-    local_work, total_go, total_ro);
-  wclrtoeol(statuswin);
-
-  if (shared_strategy() && total_pools > 1) {
-    cg_mvwprintw(statuswin, ++line, 0, "Connected to multiple pools %s block change notify",
-           have_longpoll ? "with": "without");
-  } else {
-    cg_mvwprintw(statuswin, ++line, 0, "Connected to %s (%s) diff %s as user %s",
-           get_pool_name(pool),
-           pool->has_stratum ? "stratum" : (pool->has_gbt ? "GBT" : "longpoll"),
-           pool->diff,
-           get_pool_user(pool));
-  }
-
-  wclrtoeol(statuswin);
-
-  cg_mvwprintw(statuswin, ++line, 0, "Block: %s...  Diff:%s  Started: %s  Best share: %s   ",
-         prev_block, block_diff, blocktime, best_share);
-
-  mvwhline(statuswin, ++line, 0, '-', 80);
-  mvwhline(statuswin, statusy - 1, 0, '-', 80);
-
-#ifdef USE_OPENCL
-  cg_mvwprintw(statuswin, devcursor - 1, 0, "[P]ool management [G]PU management [S]ettings [D]isplay options [Q]uit");
-#else
-  cg_mvwprintw(statuswin, devcursor - 1, 0, "[P]ool management [S]ettings [D]isplay options [Q]uit");
-#endif
+//  wattron(statuswin, A_BOLD);
+//  cg_mvwprintw(statuswin, line, 0, PACKAGE " " CGMINER_VERSION " - Started: %s", datestamp);
+//  curses_print_uptime(&launch_time);
+//  wattroff(statuswin, A_BOLD);
+//
+//  mvwhline(statuswin, ++line, 0, '-', 80);
+//
+//  cg_mvwprintw(statuswin, ++line, 0, "%s", statusline);
+//  wclrtoeol(statuswin);
+//
+//  cg_mvwprintw(statuswin, ++line, 0, "ST: %d  SS: %d  NB: %d  LW: %d  GF: %d  RF: %d",
+//    total_staged(), total_stale, new_blocks,
+//    local_work, total_go, total_ro);
+//  wclrtoeol(statuswin);
+//
+//  if (shared_strategy() && total_pools > 1) {
+//    cg_mvwprintw(statuswin, ++line, 0, "Connected to multiple pools %s block change notify",
+//           have_longpoll ? "with": "without");
+//  } else {
+//    cg_mvwprintw(statuswin, ++line, 0, "Connected to %s (%s) diff %s as user %s",
+//           get_pool_name(pool),
+//           pool->has_stratum ? "stratum" : (pool->has_gbt ? "GBT" : "longpoll"),
+//           pool->diff,
+//           get_pool_user(pool));
+//  }
+//
+//  wclrtoeol(statuswin);
+//
+//  cg_mvwprintw(statuswin, ++line, 0, "Block: %s...  Diff:%s  Started: %s  Best share: %s   ",
+//         prev_block, block_diff, blocktime, best_share);
+//
+//  mvwhline(statuswin, ++line, 0, '-', 80);
+//  mvwhline(statuswin, statusy - 1, 0, '-', 80);
+//
+//#ifdef USE_OPENCL
+//  cg_mvwprintw(statuswin, devcursor - 1, 0, "[P]ool management [G]PU management [S]ettings [D]isplay options [Q]uit");
+//#else
+//  cg_mvwprintw(statuswin, devcursor - 1, 0, "[P]ool management [S]ettings [D]isplay options [Q]uit");
+//#endif
 }
 
 static void adj_width(int var, int *length)

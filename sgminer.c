@@ -7366,6 +7366,7 @@ static void hash_sole_work(struct thr_info *mythr)
       thread_reportin(mythr);
       applog(LOG_DEBUG, "Calling drv->scanhash() to find the nonce");
       hashes = drv->scanhash(mythr, work, work->blk.nonce + max_nonce);
+      applog(LOG_DEBUG, "Done with drv->scanhash()");
       thread_reportout(mythr);
 
       pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);

@@ -343,7 +343,7 @@ static bool tty_thread_prepare(struct thr_info *thr)
   }
 
   if (!cgpu->name)
-    cgpu->name = strdup(name);
+    cgpu->name = TTYDEVICE ;
 
   applog(LOG_INFO, "initTty() finished. Found %s", name);
   cgtime(&now);

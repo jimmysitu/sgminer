@@ -7884,7 +7884,7 @@ static void *watchdog_thread(void __maybe_unused *userdata)
         for (i = 0; i < total_devices; i++) {
           cgpu = get_devices(i);
           if (cgpu && (!opt_removedisabled || cgpu->deven != DEV_DISABLED || devices_enabled[i]))
-            curses_print_devstatus(cgpu, count++);
+            //curses_print_devstatus(cgpu, count++);
         }
       }
 

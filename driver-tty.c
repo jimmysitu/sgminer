@@ -260,18 +260,18 @@ static void tty_detect()
   int t;
   t = write(*dev, loop_test, 4);
   if(4 != t){
-    applog(LOG_DEBUG, "Loop test error, wrote %d", t);
+    applog(LOG_ERR, "Loop test error, wrote %d", t);
   }
 
   sleep(2);
 
   t = read(*dev, loop_ack, 4);
   if(4 != t){
-    applog(LOG_DEBUG, "Loop ack error, read %d", t);
+    applog(LOG_ERR, "Loop ack error, read %d", t);
   }
 
   if(1 != (loop_ack[3] - loop_test[3])){
-    applog(LOG_INFO, "Loop test fail, ack btye error\n");
+    applog(LOG_ERR, "Loop test fail, ack btye error\n");
   }
 
   // close tty device
@@ -292,6 +292,8 @@ static void tty_detect()
   cgpu->hw_errors = 0;
   cgpu->algorithm = default_profile.algorithm;
 	add_cgpu(cgpu);
+  
+  applog(LOG_DEBUG, "Detected tty device");
 
 }
 

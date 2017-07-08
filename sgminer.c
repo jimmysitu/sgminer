@@ -2742,11 +2742,11 @@ static void curses_print_devstatus(struct cgpu_info *cgpu, int count)
   adj_width(cgpu->hw_errors, &hwwidth);
   adj_width(wu, &wuwidth);
 
-//  cg_wprintw(statuswin, "/%6sh/s | R:%*.1f%% HW:%*d WU:%*.3f/m",
-//      displayed_hashes,
-//      drwidth, reject_pct,
-//      hwwidth, cgpu->hw_errors,
-//      wuwidth + 2, wu);
+  cg_wprintw(statuswin, "/%6sh/s | R:%*.1f%% HW:%*d WU:%*.3f/m",
+      displayed_hashes,
+      drwidth, reject_pct,
+      hwwidth, cgpu->hw_errors,
+      wuwidth + 2, wu);
   logline[0] = '\0';
   cgpu->drv->get_statline(logline, sizeof(logline), cgpu);
   cg_wprintw(statuswin, "%s", logline);
@@ -7878,14 +7878,14 @@ static void *watchdog_thread(void __maybe_unused *userdata)
       int count;
 
       change_logwinsize();
-//      curses_print_status();
+      curses_print_status();
 
       if (!opt_compact) {
         count = 0;
         for (i = 0; i < total_devices; i++) {
           cgpu = get_devices(i);
-//          if (cgpu && (!opt_removedisabled || cgpu->deven != DEV_DISABLED || devices_enabled[i]))
-//            curses_print_devstatus(cgpu, count++);
+          if (cgpu && (!opt_removedisabled || cgpu->deven != DEV_DISABLED || devices_enabled[i]))
+            curses_print_devstatus(cgpu, count++);
         }
       }
 

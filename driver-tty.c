@@ -105,6 +105,7 @@ bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorit
   tcsetattr(*dev, TCSAFLUSH, &options);
 
   strcpy(name, TTYDEVICE);
+  applog(LOG_INFO, "[TTY] initTty() done with device %d", *dev);
   return true;
 
 }
@@ -427,10 +428,10 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
   int cnt = 10;
   while(cnt > 0){
     // Read tty device to get the golden nonces
-    applog(LOG_DEBUG, "[TTY] tty device try to read 7 bytes");
+    applog(LOG_DEBUG, "[TTY] tty device %d try to read 7 bytes", *dev);
     int rd = read(*dev, msg, 7);
     if(rd > 0 & rd < 7){
-      applog(LOG_DEBUG, "[TTY] tty device try to read once more");
+      applog(LOG_DEBUG, "[TTY] tty device %d try to read once more", *dev);
       rd = rd + read(*dev, &msg[rd], (7-rd));
     }
 

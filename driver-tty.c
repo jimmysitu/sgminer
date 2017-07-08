@@ -31,7 +31,6 @@
 #include "findnonce.h"
 #include "util.h"
 
-extern int ttyr_thr_id;
 
 /* TODO: cleanup externals ********************/
 
@@ -39,6 +38,8 @@ extern int ttyr_thr_id;
 extern WINDOW *mainwin, *statuswin, *logwin;
 extern void enable_curses(void);
 #endif
+
+extern int ttyr_thr_id;
 
 extern void submit_work_async(struct work *work_in, struct timeval *tv_work_found);
 extern int dev_from_id(int thr_id);
@@ -219,11 +220,11 @@ static void reinit_tty_device(struct cgpu_info *tty)
 
 static void tty_detect()
 {
-  // Try loop test here
   int fd;
   int *dev = &fd;
   struct termios options;
-  fd = open(TTYDEVICE, O_RDWR | O_NOCTTY | O_NDELAY);
+  
+  *dev = open(TTYDEVICE, O_RDWR | O_NOCTTY | O_NDELAY);
   if(*dev == -1){
     applog(LOG_ERR, "Failed to open tty device");
 		return;
@@ -277,17 +278,14 @@ static void tty_detect()
   }
 
   applog(LOG_DEBUG, "Detected tty device %d", *dev);
-  
   // close tty device
   close(*dev);
 
 
-	struct cgpu_info *cgpu = malloc(sizeof(struct cgpu_info));
-
-	if (unlikely(!cgpu))
-		quit(1, "Failed to malloc tty");
-
   nDevs = 1;    // Support only 1 tty for now
+  
+  struct cgpu_info *cgpu;
+  cgpu = &ttys[0];
 	cgpu->drv = &tty_drv;
 	cgpu->deven = DEV_ENABLED;
 	cgpu->threads = 1;

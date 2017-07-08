@@ -427,9 +427,10 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
   int cnt = 10;
   while(cnt > 0){
     // Read tty device to get the golden nonces
+    applog(LOG_DEBUG, "[TTY] tty device try to read 7 bytes");
     int rd = read(*dev, msg, 7);
     if(rd > 0 & rd < 7){
-      applog(LOG_DEBUG, "[TTY] tty device try to read more bytes");
+      applog(LOG_DEBUG, "[TTY] tty device try to read once more");
       rd = rd + read(*dev, &msg[rd], (7-rd));
     }
 

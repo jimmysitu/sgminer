@@ -102,8 +102,8 @@ bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorit
   options.c_cc[VTIME] = 10;
 
   // Setting configuration
-  //tcsetattr(*dev, TCSANOW, &options);
-  tcsetattr(*dev, TCSAFLUSH, &options);
+  tcsetattr(*dev, TCSANOW, &options);
+  //tcsetattr(*dev, TCSAFLUSH, &options);
 
   strcpy(name, TTYDEVICE);
   applog(LOG_INFO, "[TTY] initTty() done with device %d", *dev);
@@ -174,7 +174,7 @@ select_cgpu:
 
     thr->q = tq_new();
     if (!thr->q)
-      quit(1, "Failed to tq_new in reinit_gpu");
+      quit(1, "Failed to tq_new in reinit_tty");
 
     applog(LOG_INFO, "Reinit TTY thread %d", thr_id);
     ttyStates[thr_id] = initTty(virtual_tty, name, sizeof(name), &cgpu->algorithm);

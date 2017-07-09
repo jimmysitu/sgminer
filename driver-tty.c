@@ -410,7 +410,7 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
 
   int64_t hashes = 0;
 
-  applog(LOG_DEBUG, "[TTY] tty_scanhash started");
+  applog(LOG_DEBUG, "[TTY] tty_scanhash started with device %d", *dev);
 
   status = thrdata->queue_kernel_parameters(dev, &work->blk);
   if (unlikely(status != 0)) {

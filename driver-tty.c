@@ -65,7 +65,7 @@ static bool ttyStates[MAX_TTYDEVICES];
 #define BAUDRATE B115200
 #define TTYDEVICE "/dev/ttyPS1"
 
-bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorithm)
+bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorithm, bool restart)
 {
 	struct cgpu_info *cgpu = &ttys[tty];
 	int *dev = &cgpu->tty_dev;
@@ -74,23 +74,25 @@ bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorit
 
   applog(LOG_DEBUG, "initTty() started, selected ttys[%d]", tty);
 
-//  // close tty device first
-//  applog(LOG_DEBUG, "Close tty device %d", *dev);
-//  if(-1 == close(*dev)){
-//    switch(errno){
-//      case EBADF:
-//        applog(LOG_DEBUG, "Close tty device %d fail, maybe it is not open", *dev);
-//        break;
-//      case EINTR:
-//        applog(LOG_DEBUG, "Close tty device %d fail, interrupted by a signal", *dev);
-//        break;
-//      case EIO:
-//        applog(LOG_DEBUG, "Close tty device %d fail, I/O error occurred", *dev);
-//        break;
-//      default:
-//        applog(LOG_DEBUG, "Close tty device %d fail, unknown reason", *dev);
-//    }
-//  }
+  // close tty device first
+  if(restart){
+    applog(LOG_DEBUG, "Close tty device %d", *dev);
+    if(-1 == close(*dev)){
+      switch(errno){
+      case EBADF:
+        applog(LOG_DEBUG, "Close tty device %d fail, maybe it is not open", *dev);
+        break;
+      case EINTR:
+        applog(LOG_DEBUG, "Close tty device %d fail, interrupted by a signal", *dev);
+        break;
+      case EIO:
+        applog(LOG_DEBUG, "Close tty device %d fail, I/O error occurred", *dev);
+        break;
+      default:
+        applog(LOG_DEBUG, "Close tty device %d fail, unknown reason", *dev);
+      }
+    }
+  }
 
   *dev = open(TTYDEVICE, O_RDWR | O_NOCTTY | O_NDELAY);
   if(*dev == -1){
@@ -135,7 +137,7 @@ bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorit
 
 }
 
-/* We have only one thread that ever re-initialises TTYs, thus if any GPU
+/* We have only one thread that ever re-initialises TTYs, thus if any TTY
  * init command fails due to a completely wedged TTY, the thread will never
  * return, unable to harm other GPUs. If it does return, it means we only had
  * a soft failure and then the reinit_tty thread is ready to tackle another
@@ -201,7 +203,7 @@ select_cgpu:
       quit(1, "Failed to tq_new in reinit_tty");
 
     applog(LOG_INFO, "Reinit TTY thread %d", thr_id);
-    ttyStates[thr_id] = initTty(virtual_tty, name, sizeof(name), &cgpu->algorithm);
+    ttyStates[thr_id] = initTty(virtual_tty, name, sizeof(name), &cgpu->algorithm, true);
     if (!ttyStates[thr_id]) {
       applog(LOG_ERR, "Failed to reinit TTY thread %d", thr_id);
       goto select_cgpu;
@@ -341,7 +343,7 @@ static bool tty_thread_prepare(struct thr_info *thr)
 
   strcpy(name, "");
   // Open and setting the tty device
-  ttyStates[i] = initTty(virtual_tty, name, sizeof(name), &cgpu->algorithm);
+  ttyStates[i] = initTty(virtual_tty, name, sizeof(name), &cgpu->algorithm, false);
   if (!ttyStates[i]){
 #ifdef HAVE_CURSES
     if (use_curses)

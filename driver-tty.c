@@ -113,6 +113,9 @@ bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorit
   options.c_cflag &= ~CSIZE;
   options.c_cflag |= CS8;
 
+  // no flow control
+  options.c_cflag &= ~CRTSCTS;
+
   // Misc setting
   options.c_iflag &= ~(BRKINT | ICRNL | IMAXBEL);
   options.c_oflag &= ~(OPOST | ONLCR);
@@ -122,9 +125,10 @@ bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorit
   options.c_cc[VTIME] = 10;
 
   // Setting configuration
-  tcsetattr(*dev, TCSANOW, &options);
-  //tcsetattr(*dev, TCSAFLUSH, &options);
-
+  tcflush(*dev, TCIFLUSH);
+  if(tcsetattr(*dev, TCSANOW, &options) != 0){
+    applog(LOG_INFO, "[TTY] initTty() failed to setting configuration with device %d", *dev);
+  }
   strcpy(name, TTYDEVICE);
   applog(LOG_INFO, "[TTY] initTty() done with device %d", *dev);
   return true;

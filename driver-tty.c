@@ -72,25 +72,25 @@ bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorit
 
   struct termios options;
 
-  applog(LOG_DEBUG, "initTty(): Select ttys[%d]", tty);
+  applog(LOG_DEBUG, "initTty() started, selected ttys[%d]", tty);
 
-  // close tty device first
-  applog(LOG_DEBUG, "Close tty device %d", *dev);
-  if(-1 == close(*dev)){
-    switch(errno){
-      case EBADF:
-        applog(LOG_DEBUG, "Close tty device %d fail, maybe it is not open", *dev);
-        break;
-      case EINTR:
-        applog(LOG_DEBUG, "Close tty device %d fail, interrupted by a signal", *dev);
-        break;
-      case EIO:
-        applog(LOG_DEBUG, "Close tty device %d fail, I/O error occurred", *dev);
-        break;
-      default:
-        applog(LOG_DEBUG, "Close tty device %d fail, unknown reason", *dev);
-    }
-  }
+//  // close tty device first
+//  applog(LOG_DEBUG, "Close tty device %d", *dev);
+//  if(-1 == close(*dev)){
+//    switch(errno){
+//      case EBADF:
+//        applog(LOG_DEBUG, "Close tty device %d fail, maybe it is not open", *dev);
+//        break;
+//      case EINTR:
+//        applog(LOG_DEBUG, "Close tty device %d fail, interrupted by a signal", *dev);
+//        break;
+//      case EIO:
+//        applog(LOG_DEBUG, "Close tty device %d fail, I/O error occurred", *dev);
+//        break;
+//      default:
+//        applog(LOG_DEBUG, "Close tty device %d fail, unknown reason", *dev);
+//    }
+//  }
 
   *dev = open(TTYDEVICE, O_RDWR | O_NOCTTY | O_NDELAY);
   if(*dev == -1){

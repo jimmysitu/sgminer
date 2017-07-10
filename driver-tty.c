@@ -72,6 +72,8 @@ bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorit
 
   struct termios options;
 
+  applog(LOG_DEBUG, "initTty(): Select ttys[%d]", tty);
+
   // close tty device first
   applog(LOG_DEBUG, "Close tty device %d", *dev);
   if(-1 == close(*dev)){
@@ -460,7 +462,7 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
       applog(LOG_DEBUG, "[TTY] tty device found something, nonce: 0x%08x", nonce);
 
       last_nonce = swab32(nonce);
-      
+
       hashes = last_nonce - first_nonce;
       goto found_nonces;
 

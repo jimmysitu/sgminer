@@ -123,7 +123,7 @@ bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorit
   options.c_oflag &= ~(OPOST | ONLCR);
   options.c_lflag &= ~(ISIG | ICANON | IEXTEN | ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE);
 
-  options.c_cc[VMIN]  = 7;
+  options.c_cc[VMIN]  = 0;
   options.c_cc[VTIME] = 10;
 
   // Setting configuration

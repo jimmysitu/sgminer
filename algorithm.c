@@ -1163,7 +1163,7 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
   memcpy(&cmd[83], &target, 8);
   
   applog(LOG_ERR, "[TTY] Writing cmd");
-  if(-1 == write(*dev, cmd, 3)){
+  if(-1 == write(*dev, cmd, 91)){
     applog(LOG_ERR, "[TTY] Write cmd error");
     return -1;
   }

@@ -1148,32 +1148,44 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
 
   uint64_t target;
   uint8_t data[80];
+  uint8_t header[3] = {0xAA, 0x00, 0x58};  // Send work command header
   
   applog(LOG_DEBUG, "[TTY] queue_sia_kernel started");
   target = *(uint64_t *)(blk->work->device_target + 24);
   flip80(data, blk->work->data);
 
   ((uint64_t*)data)[4] = blk->work->blk.nonce;
-  // send work (data and target) to tty device
-  uint8_t header[3] = {0xAA, 0x00, 0x58};  // Send work command header
+
+  // Compose header, data and target to cmd
+  uint8_t cmd[91];
+  memcpy(cmd, header, 3);
+  memcpy(&cmd[3], data, 80);
+  memcpy(&cmd[83], &target, 8);
   
-  applog(LOG_DEBUG, "[TTY] queue_sia_kernel: writing header");
-  if(-1 == write(*dev, header, 3)){
-    applog(LOG_ERR, "[TTY] Write header error");
+  applog(LOG_ERR, "[TTY] Writing cmd");
+  if(-1 == write(*dev, cmd, 3)){
+    applog(LOG_ERR, "[TTY] Write cmd error");
     return -1;
   }
-  
-  applog(LOG_DEBUG, "[TTY] queue_sia_kernel: writing data");
-  if(-1 == write(*dev, data, 80)){
-    applog(LOG_ERR, "[TTY] Write data error");
-    return -1;
-  }
-  
-  applog(LOG_DEBUG, "[TTY] queue_sia_kernel: writing target");
-  if(-1 == write(*dev, &target, 8)){
-    applog(LOG_ERR, "[TTY] Write data error");
-    return -1;
-  }
+
+//  // send work (data and target) to tty device
+//  applog(LOG_DEBUG, "[TTY] queue_sia_kernel: writing header");
+//  if(-1 == write(*dev, header, 3)){
+//    applog(LOG_ERR, "[TTY] Write header error");
+//    return -1;
+//  }
+//  
+//  applog(LOG_DEBUG, "[TTY] queue_sia_kernel: writing data");
+//  if(-1 == write(*dev, data, 80)){
+//    applog(LOG_ERR, "[TTY] Write data error");
+//    return -1;
+//  }
+//  
+//  applog(LOG_DEBUG, "[TTY] queue_sia_kernel: writing target");
+//  if(-1 == write(*dev, &target, 8)){
+//    applog(LOG_ERR, "[TTY] Write data error");
+//    return -1;
+//  }
 
   applog(LOG_DEBUG, "[TTY] Work data[0]: %016llX", ((uint64_t*)data)[0]);
   applog(LOG_DEBUG, "[TTY] Work data[1]: %016llX", ((uint64_t*)data)[1]);

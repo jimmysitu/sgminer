@@ -123,7 +123,7 @@ bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorit
   options.c_oflag &= ~(OPOST | ONLCR);
   options.c_lflag &= ~(ISIG | ICANON | IEXTEN | ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE);
 
-  options.c_cc[VMIN]  = 0;
+  options.c_cc[VMIN]  = 7;
   options.c_cc[VTIME] = 10;
 
   // Setting configuration
@@ -276,7 +276,7 @@ static void tty_detect()
   options.c_oflag &= ~(OPOST | ONLCR);
   options.c_lflag &= ~(ISIG | ICANON | IEXTEN | ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE);
 
-  options.c_cc[VMIN]  = 0;
+  options.c_cc[VMIN]  = 4;
   options.c_cc[VTIME] = 10;
 
   // Setting configuration
@@ -454,10 +454,10 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
     // Read tty device to get the golden nonces
     applog(LOG_DEBUG, "[TTY] tty device try to read 7 bytes");
     int rd = read(*dev, msg, 7);
-    if(rd > 0 & rd < 7){
-      applog(LOG_DEBUG, "[TTY] tty device try to read once more");
-      rd = rd + read(*dev, &msg[rd], (7-rd));
-    }
+//    if(rd > 0 & rd < 7){
+//      applog(LOG_DEBUG, "[TTY] tty device read %d bytes, read once more", rd);
+//      rd = rd + read(*dev, &msg[rd], (7-rd));
+//    }
 
     if(7 == rd){
       applog(LOG_DEBUG, "[TTY] tty device read %d btyes, header: 0x%02X, 0x%02X, 0x%02X", 

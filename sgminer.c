@@ -7477,6 +7477,7 @@ void *miner_thread(void *userdata)
 out:
   drv->thread_shutdown(mythr);
 
+  applog(LOG_DEBUG, "End of miner_thread");
   return NULL;
 }
 

@@ -849,13 +849,13 @@ void thr_info_cancel_join(struct thr_info *thr)
             applog(LOG_DEBUG, "Error == ESRCH");
             break;
           default:
-            applog(LOG_DEBUG, "Error unknown");
+            applog(LOG_DEBUG, "Error unknown, %d", rc);
         }
     }else{
       if(res == PTHREAD_CANCELED){
         applog(LOG_DEBUG, "Thread was cancelled in thr_info_cancel_join");
       }else{
-        applog(LOG_ERR, "Thread was not cancelled in thr_info_cancel_join");
+        applog(LOG_DEBUG, "Thread was not cancelled in thr_info_cancel_join");
       }
     }
     PTH(thr) = 0L;

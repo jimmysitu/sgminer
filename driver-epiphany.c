@@ -280,6 +280,10 @@ static void epiphany_thread_shutdown(__maybe_unused struct thr_info *thr)
 	e_free(emem);
 	e_finalize();
 
+  free(((struct epiphany_thread_data *)thr->cgpu_data)->res);
+  free(thr->cgpu_data);
+  thr->cgpu_data = NULL;
+
 }
 
 static uint64_t epiphany_can_limit_work(struct thr_info __maybe_unused *thr)

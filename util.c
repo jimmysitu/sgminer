@@ -827,12 +827,19 @@ int thr_info_create(struct thr_info *thr, pthread_attr_t *attr, void *(*start) (
 
 void thr_info_cancel_join(struct thr_info *thr)
 {
+  void *res;
+
   if (!thr)
     return;
 
   if (PTH(thr) != 0L) {
     pthread_cancel(thr->pth);
-    pthread_join(thr->pth, NULL);
+    pthread_join(thr->pth, &res);
+    if(res == PTHREAD_CANCELED){
+      applog(LOG_DEBUG, "Thread was cancelled in thr_info_cancel_join");
+    }else{
+      applog(LOG_ERR, "Thread was not cancelled in thr_info_cancel_join");
+    }
     PTH(thr) = 0L;
   }
   cgsem_destroy(&thr->sem);

@@ -497,6 +497,10 @@ static void tty_thread_shutdown(__maybe_unused struct thr_info *thr)
   }else{
     applog(LOG_DEBUG, "[TTY] Closed tty device %d", *dev);
   }
+
+  free(((struct tty_thread_data *)thr->cgpu_data)->res);
+  free(thr->cgpu_data);
+  thr->cgpu_data = NULL;
 }
 
 static uint64_t tty_can_limit_work(struct thr_info __maybe_unused *thr)

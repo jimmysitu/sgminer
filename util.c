@@ -836,7 +836,7 @@ void thr_info_cancel_join(struct thr_info *thr)
   if (PTH(thr) != 0L) {
     pthread_cancel(thr->pth);
     rc = pthread_join(thr->pth, &res);
-    if(!rc){
+    if(rc){
         applog(LOG_ERR, "Error when calling pthread_join");
         switch(rc){
           case EDEADLK:

@@ -827,15 +827,36 @@ int thr_info_create(struct thr_info *thr, pthread_attr_t *attr, void *(*start) (
 
 void thr_info_cancel_join(struct thr_info *thr)
 {
+  void *res;
+  int rc;
+
   if (!thr)
     return;
 
   if (PTH(thr) != 0L) {
     pthread_cancel(thr->pth);
-    if(!pthread_join(thr->pth, NULL)){
-      applog(LOG_DEBUG, "Thread was cancelled in thr_info_cancel_join");
+    rc = pthread_join(thr->pth, &res);
+    if(!rc){
+        applog(LOG_ERR, "Error when calling pthread_join");
+        switch(rc){
+          case EDEADLK:
+            applog(LOG_DEBUG, "Error == EDEADLK");
+            break;
+          case EINVAL:
+            applog(LOG_DEBUG, "Error == EINVAL");
+            break;
+          case ESRCH:
+            applog(LOG_DEBUG, "Error == ESRCH");
+            break;
+          default:
+            applog(LOG_DEBUG, "Error unknown");
+        }
     }else{
-      applog(LOG_ERR, "Thread was not cancelled in thr_info_cancel_join");
+      if(res == PTHREAD_CANCELED){
+        applog(LOG_DEBUG, "Thread was cancelled in thr_info_cancel_join");
+      }else{
+        applog(LOG_ERR, "Thread was not cancelled in thr_info_cancel_join");
+      }
     }
     PTH(thr) = 0L;
   }

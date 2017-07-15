@@ -460,7 +460,8 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
     }else{
       applog(LOG_DEBUG, "[TTY] tty device read %d btyes, continue", rd);
       hashes = hashes + 20000000;
-      break;
+      cnt--;
+      //break;
     }
   }
 

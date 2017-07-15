@@ -1163,10 +1163,12 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
   memcpy(&cmd[83], &target, 8);
   
   applog(LOG_ERR, "[TTY] Writing cmd");
-  if(-1 == write(*dev, cmd, 91)){
-    applog(LOG_ERR, "[TTY] Write cmd error %d", errno);
-    return -1;
-  }
+  do{
+    if(-1 == write(*dev, cmd, 91)){
+      applog(LOG_ERR, "[TTY] Write cmd errno is %d", errno);
+    }
+    sleep(1);
+  }while(EAGAIN == errno);
 
 //  // send work (data and target) to tty device
 //  applog(LOG_DEBUG, "[TTY] queue_sia_kernel: writing header");

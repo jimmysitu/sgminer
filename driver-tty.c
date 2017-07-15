@@ -74,12 +74,12 @@ bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorit
 
   applog(LOG_DEBUG, "initTty() started, selected ttys[%d]", tty);
 
-  *dev = open(TTYDEVICE, O_RDWR | O_NOCTTY | O_NDELAY);
+  *dev = open(TTYDEVICE, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
   if(*dev == -1){
     applog(LOG_ERR, "Failed to open tty device");
 		return false;
   }
-  fcntl(*dev, F_SETFL, 0);
+  //fcntl(*dev, F_SETFL, 0);
 
   // Get current options
   tcgetattr(*dev, &options);
@@ -230,12 +230,12 @@ static void tty_detect()
   int *dev = &fd;
   struct termios options;
 
-  *dev = open(TTYDEVICE, O_RDWR | O_NOCTTY | O_NDELAY);
+  *dev = open(TTYDEVICE, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
   if(*dev == -1){
     applog(LOG_ERR, "Failed to open tty device");
 		return;
   }
-  fcntl(*dev, F_SETFL, 0);
+  //fcntl(*dev, F_SETFL, 0);
 
   // Get current options
   tcgetattr(*dev, &options);
@@ -289,7 +289,7 @@ static void tty_detect()
 
 
   nDevs = 1;    // Support only 1 tty for now
-  
+
   struct cgpu_info *cgpu;
   cgpu = &ttys[0];
 	cgpu->drv = &tty_drv;
@@ -431,6 +431,7 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
   // Wait and check if any nonce is found
   int cnt = 10;
   while(cnt > 0){
+    sleep(1);
     // Read tty device to get the golden nonces
     applog(LOG_DEBUG, "[TTY] tty device try to read 7 bytes");
     int rd = read(*dev, msg, 7);
@@ -457,7 +458,7 @@ static int64_t tty_scanhash(struct thr_info *thr, struct work *work,
       hashes = hashes + 20000000;
       cnt--;
     }else{
-      applog(LOG_DEBUG, "[TTY] tty device read %d btyes, error", rd);
+      applog(LOG_DEBUG, "[TTY] tty device read %d btyes, continue", rd);
       hashes = hashes + 20000000;
       break;
     }

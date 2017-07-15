@@ -1164,7 +1164,7 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
   
   applog(LOG_ERR, "[TTY] Writing cmd");
   if(-1 == write(*dev, cmd, 91)){
-    applog(LOG_ERR, "[TTY] Write cmd error");
+    applog(LOG_ERR, "[TTY] Write cmd error %d", errno);
     return -1;
   }
 

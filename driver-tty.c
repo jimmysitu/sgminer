@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include <signal.h>
 #include <sys/types.h>
+#include <sys/file.h>
 
 #ifndef WIN32
 #include <sys/resource.h>
@@ -75,9 +76,15 @@ bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorit
   applog(LOG_DEBUG, "initTty() started, selected ttys[%d]", tty);
 
   *dev = open(TTYDEVICE, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
-  if(*dev == -1){
+  if(-1 == *dev){
     applog(LOG_ERR, "Failed to open tty device");
 		return false;
+  }
+
+  if(-1 == flock(*dev, LOCK_EX)){
+    applog(LOG_DEBUG, "[TTY] Lock tty device %d fail, errno is ", *dev, errno);
+  }else{
+    applog(LOG_DEBUG, "[TTY] Lock tty device %d", *dev);
   }
   //fcntl(*dev, F_SETFL, 0);
 
@@ -482,20 +489,15 @@ found_nonces:
 static void tty_thread_shutdown(__maybe_unused struct thr_info *thr)
 {
 	int *dev = &thr->cgpu->tty_dev;
+
+  if(-1 == flock(*dev, LOCK_UN)){
+    applog(LOG_DEBUG, "[TTY] Unlock tty device %d fail, errno is ", *dev, errno);
+  }else{
+    applog(LOG_DEBUG, "[TTY] Unlock tty device %d", *dev);
+  }
+
   if(-1 == close(*dev)){
-    switch(errno){
-    case EBADF:
-      applog(LOG_DEBUG, "Close tty device %d fail, maybe it is not open", *dev);
-      break;
-    case EINTR:
-      applog(LOG_DEBUG, "Close tty device %d fail, interrupted by a signal", *dev);
-      break;
-    case EIO:
-      applog(LOG_DEBUG, "Close tty device %d fail, I/O error occurred", *dev);
-      break;
-    default:
-      applog(LOG_DEBUG, "Close tty device %d fail, unknown reason", *dev);
-    }
+    applog(LOG_DEBUG, "[TTY] Close tty device %d fail, errno is ", *dev, errno);
   }else{
     applog(LOG_DEBUG, "[TTY] Closed tty device %d", *dev);
   }

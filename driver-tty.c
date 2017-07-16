@@ -502,9 +502,15 @@ static void tty_thread_shutdown(__maybe_unused struct thr_info *thr)
 //  }else{
 //    applog(LOG_DEBUG, "[TTY] Unlock tty device %d", *dev);
 //  }
+  
+  if(-1 == ioctl(*dev, TIOCNXCL)){
+    applog(LOG_DEBUG, "[TTY] Lock tty device %d fail, errno is ", *dev, errno);
+  }else{
+    applog(LOG_DEBUG, "[TTY] Lock tty device %d", *dev);
+  }
 
   if(-1 == close(*dev)){
-    applog(LOG_DEBUG, "[TTY] Close tty device %d fail, errno is ", *dev, errno);
+    applog(LOG_DEBUG, "[TTY] Close tty device %d fail, errno is %d", *dev, errno);
   }else{
     applog(LOG_DEBUG, "[TTY] Closed tty device %d", *dev);
   }

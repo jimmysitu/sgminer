@@ -18,6 +18,7 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/file.h>
+#include <sys/ioctl.h>
 
 #ifndef WIN32
 #include <sys/resource.h>
@@ -80,13 +81,19 @@ bool initTty(unsigned int tty, char *name, size_t nameSize, algorithm_t *algorit
     applog(LOG_ERR, "Failed to open tty device");
 		return false;
   }
+  //fcntl(*dev, F_SETFL, 0);
 
-  if(-1 == flock(*dev, LOCK_EX)){
+//  if(-1 == flock(*dev, LOCK_EX)){
+//    applog(LOG_DEBUG, "[TTY] Lock tty device %d fail, errno is ", *dev, errno);
+//  }else{
+//    applog(LOG_DEBUG, "[TTY] Lock tty device %d", *dev);
+//  }
+
+  if(-1 == ioctl(*dev, TIOCEXCL)){
     applog(LOG_DEBUG, "[TTY] Lock tty device %d fail, errno is ", *dev, errno);
   }else{
     applog(LOG_DEBUG, "[TTY] Lock tty device %d", *dev);
   }
-  //fcntl(*dev, F_SETFL, 0);
 
   // Get current options
   tcgetattr(*dev, &options);
@@ -490,11 +497,11 @@ static void tty_thread_shutdown(__maybe_unused struct thr_info *thr)
 {
 	int *dev = &thr->cgpu->tty_dev;
 
-  if(-1 == flock(*dev, LOCK_UN)){
-    applog(LOG_DEBUG, "[TTY] Unlock tty device %d fail, errno is ", *dev, errno);
-  }else{
-    applog(LOG_DEBUG, "[TTY] Unlock tty device %d", *dev);
-  }
+//  if(-1 == flock(*dev, LOCK_UN)){
+//    applog(LOG_DEBUG, "[TTY] Unlock tty device %d fail, errno is ", *dev, errno);
+//  }else{
+//    applog(LOG_DEBUG, "[TTY] Unlock tty device %d", *dev);
+//  }
 
   if(-1 == close(*dev)){
     applog(LOG_DEBUG, "[TTY] Close tty device %d fail, errno is ", *dev, errno);

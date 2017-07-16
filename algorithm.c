@@ -1185,6 +1185,8 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
 
   if(-1 == write(*dev, cmd, 91)){
     applog(LOG_ERR, "[TTY] Write cmd errno is %d", errno);
+    applog(LOG_ERR, "[TTY] EAGAIN == %d", EAGAIN);
+
   }else{
     applog(LOG_DEBUG, "[TTY] Work data[0]: %016llX", ((uint64_t*)data)[0]);
     applog(LOG_DEBUG, "[TTY] Work data[1]: %016llX", ((uint64_t*)data)[1]);

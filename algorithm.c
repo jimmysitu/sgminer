@@ -1153,6 +1153,18 @@ static int queue_sia_kernel(int *dev, struct _dev_blk_ctx *blk)
   applog(LOG_DEBUG, "[TTY] queue_sia_kernel started");
   target = *(uint64_t *)(blk->work->device_target + 24);
   flip80(data, blk->work->data);
+            
+  
+  ((uint64_t*)data)[0] = 0x1400000000000000;
+  ((uint64_t*)data)[1] = 0xF1B9293F98C707A1;
+  ((uint64_t*)data)[2] = 0x5E2B51347B3A22C2;
+  ((uint64_t*)data)[3] = 0x3EE4BE13A9EA7BA5;
+  ((uint64_t*)data)[4] = 0x0000000000000000;
+  ((uint64_t*)data)[5] = 0x0000000059468AB0;
+  ((uint64_t*)data)[6] = 0x25C1B405F6900E2C;
+  ((uint64_t*)data)[7] = 0x534A5B20279C2B44;
+  ((uint64_t*)data)[8] = 0xAF5F4C366197B471;
+  ((uint64_t*)data)[9] = 0xC18A8649991E3F7D;
 
   ((uint64_t*)data)[4] = blk->work->blk.nonce;
 
